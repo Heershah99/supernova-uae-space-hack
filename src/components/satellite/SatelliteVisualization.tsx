@@ -8,48 +8,94 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Play, Pause, RotateCcw } from 'lucide-react';
 
-// Earth component
+// Earth component with atmosphere
 function Earth() {
   const earthRef = useRef<THREE.Mesh>(null);
   
   useFrame(() => {
     if (earthRef.current) {
-      earthRef.current.rotation.y += 0.005;
+      earthRef.current.rotation.y += 0.002;
     }
   });
 
   return (
-    <Sphere ref={earthRef} args={[1, 32, 32]} position={[0, 0, 0]}>
-      <meshPhongMaterial 
-        color="#4a90e2" 
-        transparent 
-        opacity={0.8}
-        wireframe={false}
-      />
-    </Sphere>
+    <group>
+      {/* Main Earth body */}
+      <Sphere ref={earthRef} args={[1, 64, 64]} position={[0, 0, 0]}>
+        <meshStandardMaterial 
+          color="#1e4d8b"
+          metalness={0.3}
+          roughness={0.7}
+          emissive="#0a2540"
+          emissiveIntensity={0.2}
+        />
+      </Sphere>
+      {/* Atmosphere glow */}
+      <Sphere args={[1.02, 64, 64]} position={[0, 0, 0]}>
+        <meshPhongMaterial 
+          color="#4a90e2"
+          transparent
+          opacity={0.15}
+          side={THREE.BackSide}
+        />
+      </Sphere>
+      {/* Cloud layer */}
+      <Sphere args={[1.01, 32, 32]} position={[0, 0, 0]}>
+        <meshPhongMaterial 
+          color="#ffffff"
+          transparent
+          opacity={0.08}
+        />
+      </Sphere>
+    </group>
   );
 }
 
-// Satellite component
+// Enhanced Satellite component with glow
 function SatellitePoint({ position, color = "#ff6b6b", name }: { 
   position: [number, number, number]; 
   color?: string;
   name: string;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const glowRef = useRef<THREE.Mesh>(null);
   
-  useFrame(() => {
+  useFrame(({ clock }) => {
     if (meshRef.current) {
       meshRef.current.rotation.x += 0.01;
       meshRef.current.rotation.y += 0.01;
     }
+    if (glowRef.current) {
+      const pulse = Math.sin(clock.getElapsedTime() * 2) * 0.02 + 0.08;
+      glowRef.current.scale.setScalar(pulse);
+    }
   });
 
   return (
-    <mesh ref={meshRef} position={position}>
-      <boxGeometry args={[0.05, 0.05, 0.05]} />
-      <meshPhongMaterial color={color} />
-    </mesh>
+    <group position={position}>
+      {/* Main satellite body */}
+      <mesh ref={meshRef}>
+        <boxGeometry args={[0.06, 0.06, 0.06]} />
+        <meshStandardMaterial 
+          color={color} 
+          emissive={color}
+          emissiveIntensity={0.5}
+          metalness={0.8}
+          roughness={0.2}
+        />
+      </mesh>
+      {/* Glow effect */}
+      <mesh ref={glowRef}>
+        <sphereGeometry args={[0.1, 16, 16]} />
+        <meshBasicMaterial 
+          color={color} 
+          transparent 
+          opacity={0.3}
+        />
+      </mesh>
+      {/* Point light for satellite */}
+      <pointLight color={color} intensity={0.5} distance={0.5} />
+    </group>
   );
 }
 
@@ -157,11 +203,25 @@ export const SatelliteVisualization = () => {
       </div>
 
       {/* 3D Visualization */}
-      <div className="h-[600px] w-full bg-black rounded-lg overflow-hidden">
+      <div className="h-[600px] w-full bg-gradient-to-b from-slate-950 via-slate-900 to-black rounded-lg overflow-hidden border border-primary/20 shadow-2xl shadow-primary/10">
         <Canvas camera={{ position: [5, 5, 5], fov: 60 }}>
-          <ambientLight intensity={0.3} />
-          <pointLight position={[10, 10, 10]} intensity={1} />
-          <Stars radius={300} depth={60} count={20000} factor={7} />
+          <color attach="background" args={['#000000']} />
+          <fog attach="fog" args={['#000000', 10, 30]} />
+          
+          {/* Enhanced lighting */}
+          <ambientLight intensity={0.2} />
+          <pointLight position={[10, 10, 10]} intensity={1.5} color="#ffffff" />
+          <pointLight position={[-10, -10, -10]} intensity={0.5} color="#4a90e2" />
+          <hemisphereLight intensity={0.3} groundColor="#000000" />
+          
+          <Stars 
+            radius={300} 
+            depth={60} 
+            count={5000} 
+            factor={4} 
+            fade 
+            speed={0.5}
+          />
           
           <Earth />
           <ISSTracker />
@@ -173,6 +233,8 @@ export const SatelliteVisualization = () => {
             enableRotate={true}
             maxDistance={20}
             minDistance={2}
+            autoRotate={isPlaying}
+            autoRotateSpeed={0.5}
           />
         </Canvas>
       </div>

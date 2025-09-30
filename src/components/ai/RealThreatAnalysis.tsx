@@ -49,44 +49,91 @@ const RealThreatAnalysis = ({ satellites, onThreatLevelChange }: RealThreatAnaly
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5" />
-          AI-Powered Threat Analysis
-        </CardTitle>
-        <CardDescription>
-          Real-time AI analysis using Gemini 2.5 Flash
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Button onClick={runAIAnalysis} disabled={loading || satellites.length === 0}>
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Analyzing...
-            </>
-          ) : (
-            "Run AI Analysis"
-          )}
-        </Button>
-
-        {analysis && (
-          <div className="space-y-4">
-            <Badge variant="outline">Latest Analysis</Badge>
-            <div className="bg-muted p-4 rounded-lg whitespace-pre-wrap text-sm">
-              {analysis}
+    <div className="space-y-6">
+      {/* AI Analysis Control Card */}
+      <Card className="border-primary/20 bg-gradient-to-br from-background via-background to-primary/5">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                AI Threat Analysis Engine
+              </CardTitle>
+              <CardDescription className="mt-2">
+                Powered by Google Gemini 2.5 Flash • Real-time satellite data processing
+              </CardDescription>
             </div>
           </div>
-        )}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Button 
+              onClick={runAIAnalysis} 
+              disabled={loading || satellites.length === 0}
+              size="lg"
+              className="relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing {satellites.length} Satellites...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Run AI Analysis
+                </>
+              )}
+            </Button>
+            
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              AI Model Online
+            </div>
+          </div>
 
-        {!analysis && !loading && (
-          <p className="text-sm text-muted-foreground">
-            Click "Run AI Analysis" to get real-time threat assessment from our AI model.
-          </p>
-        )}
-      </CardContent>
-    </Card>
+          {!analysis && !loading && (
+            <div className="bg-muted/50 border border-border rounded-lg p-4">
+              <p className="text-sm text-muted-foreground">
+                💡 The AI will analyze {satellites.length} satellites and provide:
+              </p>
+              <ul className="mt-2 space-y-1 text-sm text-muted-foreground ml-4">
+                <li>• Collision risk assessment</li>
+                <li>• Orbital anomaly detection</li>
+                <li>• Threat level classification</li>
+                <li>• Recommended actions</li>
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Analysis Results Card */}
+      {analysis && (
+        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-background">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Analysis Results</CardTitle>
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                Latest • Just Now
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-card border border-border rounded-lg p-6 shadow-lg">
+              <div className="prose prose-sm max-w-none">
+                <div className="whitespace-pre-wrap text-foreground leading-relaxed">
+                  {analysis}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

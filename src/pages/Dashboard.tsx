@@ -1,27 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { SatelliteVisualization } from '@/components/satellite/SatelliteVisualization';
-import { ThreatAnalysis } from '@/components/ai/ThreatAnalysis';
-import { EmergencyAlerts } from '@/components/alerts/EmergencyAlerts';
+import RealThreatAnalysis from '@/components/ai/RealThreatAnalysis';
+import { RealEmergencyAlerts } from '@/components/alerts/RealEmergencyAlerts';
 import { UAEDashboard } from '@/components/uae/UAEDashboard';
-import { AlertTriangle, Satellite, Shield, Globe } from 'lucide-react';
+import { AlertTriangle, Satellite, Shield, Globe, LogOut } from 'lucide-react';
+import { useSatellites } from '@/hooks/useSatellites';
+import { useAlerts } from '@/hooks/useAlerts';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
-  const [activeSatellites, setActiveSatellites] = useState(0);
+  const navigate = useNavigate();
+  const { satellites, loading: satellitesLoading } = useSatellites();
+  const { alerts, acknowledgeAlert, resolveAlert } = useAlerts();
   const [threatLevel, setThreatLevel] = useState<'low' | 'medium' | 'high' | 'critical'>('low');
-  const [alerts, setAlerts] = useState<any[]>([]);
 
-  useEffect(() => {
-    // Simulate real-time data updates
-    const interval = setInterval(() => {
-      setActiveSatellites(prev => prev + Math.floor(Math.random() * 3) - 1);
-    }, 5000);
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Logged out successfully");
+    navigate("/auth");
+  };
 
-    return () => clearInterval(interval);
-  }, []);
+  const uaeSatellites = satellites.filter(s => s.country === 'UAE');
+  const activeAlerts = alerts.filter(a => a.status === 'active');
 
   const getThreatColor = (level: string) => {
     switch (level) {
@@ -35,13 +40,19 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold text-foreground mb-2">
-          Satellite Tracking & Space Domain Awareness
-        </h1>
-        <p className="text-muted-foreground">
-          Real-time monitoring and threat analysis for UAE space assets
-        </p>
+      <header className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-4xl font-bold text-foreground mb-2">
+            Space Domain Awareness
+          </h1>
+          <p className="text-muted-foreground">
+            Real-time monitoring and AI-powered threat analysis
+          </p>
+        </div>
+        <Button onClick={handleLogout} variant="outline">
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
       </header>
 
       {/* Status Overview */}
@@ -52,9 +63,9 @@ const Dashboard = () => {
             <Satellite className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeSatellites || 1247}</div>
+            <div className="text-2xl font-bold">{satellitesLoading ? '...' : satellites.length}</div>
             <p className="text-xs text-muted-foreground">
-              +3% from last hour
+              {uaeSatellites.length} UAE assets
             </p>
           </CardContent>
         </Card>
@@ -81,9 +92,9 @@ const Dashboard = () => {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{alerts.length}</div>
+            <div className="text-2xl font-bold">{activeAlerts.length}</div>
             <p className="text-xs text-muted-foreground">
-              2 critical, 3 medium
+              {alerts.filter(a => a.severity === 'critical').length} critical
             </p>
           </CardContent>
         </Card>
@@ -94,9 +105,9 @@ const Dashboard = () => {
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold">{uaeSatellites.length}</div>
             <p className="text-xs text-muted-foreground">
-              All operational
+              {uaeSatellites.filter(s => s.status === 'operational').length} operational
             </p>
           </CardContent>
         </Card>
@@ -123,11 +134,11 @@ const Dashboard = () => {
         </TabsContent>
 
         <TabsContent value="threats" className="space-y-6">
-          <ThreatAnalysis onThreatLevelChange={setThreatLevel} />
+          <RealThreatAnalysis satellites={satellites} onThreatLevelChange={setThreatLevel} />
         </TabsContent>
 
         <TabsContent value="alerts" className="space-y-6">
-          <EmergencyAlerts alerts={alerts} onAlertsChange={setAlerts} />
+          <RealEmergencyAlerts />
         </TabsContent>
 
         <TabsContent value="uae" className="space-y-6">

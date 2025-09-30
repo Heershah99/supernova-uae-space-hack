@@ -6,6 +6,7 @@ import { SatelliteVisualization } from '@/components/satellite/SatelliteVisualiz
 import RealThreatAnalysis from '@/components/ai/RealThreatAnalysis';
 import { RealEmergencyAlerts } from '@/components/alerts/RealEmergencyAlerts';
 import { UAEDashboard } from '@/components/uae/UAEDashboard';
+import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
 import { AlertTriangle, Satellite, Shield, Globe, LogOut } from 'lucide-react';
 import { useSatellites } from '@/hooks/useSatellites';
 import { useAlerts } from '@/hooks/useAlerts';
@@ -115,10 +116,11 @@ const Dashboard = () => {
 
       {/* Main Dashboard */}
       <Tabs defaultValue="visualization" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="visualization">3D Visualization</TabsTrigger>
           <TabsTrigger value="threats">AI Threat Analysis</TabsTrigger>
           <TabsTrigger value="alerts">Emergency Alerts</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="uae">UAE Dashboard</TabsTrigger>
         </TabsList>
 
@@ -139,6 +141,10 @@ const Dashboard = () => {
 
         <TabsContent value="alerts" className="space-y-6">
           <RealEmergencyAlerts />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <AnalyticsDashboard />
         </TabsContent>
 
         <TabsContent value="uae" className="space-y-6">

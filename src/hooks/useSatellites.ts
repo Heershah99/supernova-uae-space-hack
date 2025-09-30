@@ -9,6 +9,7 @@ export interface Satellite {
   status: string;
   country?: string;
   altitude?: number;
+  inclination?: number;
   battery_level?: number;
   signal_strength?: number;
   temperature?: number;
@@ -16,6 +17,9 @@ export interface Satellite {
   position_x?: number;
   position_y?: number;
   position_z?: number;
+  velocity_x?: number;
+  velocity_y?: number;
+  velocity_z?: number;
 }
 
 export const useSatellites = () => {

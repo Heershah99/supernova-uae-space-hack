@@ -4,19 +4,22 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Satellite, MapPin, Battery, Signal, Thermometer, Gauge } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface UAESatellite {
+  id: string;
   name: string;
   status: 'operational' | 'maintenance' | 'offline';
-  altitude: number;
-  inclination: number;
-  battery: number;
-  temperature: number;
-  signalStrength: number;
+  altitude: number | null;
+  inclination: number | null;
+  battery: number | null;
+  temperature: number | null;
+  signalStrength: number | null;
   dataRate: number;
   lastContact: Date;
   mission: string;
-  launchDate: Date;
+  type: string;
 }
 
 export const UAEDashboard = () => {
@@ -24,78 +27,64 @@ export const UAEDashboard = () => {
   const [selectedSatellite, setSelectedSatellite] = useState<string>('');
 
   useEffect(() => {
-    // Initialize UAE satellite data
-    const uaeSatellites: UAESatellite[] = [
-      {
-        name: 'KhalifaSat',
-        status: 'operational',
-        altitude: 613,
-        inclination: 98.1,
-        battery: 87,
-        temperature: -12,
-        signalStrength: 94,
-        dataRate: 320,
-        lastContact: new Date(Date.now() - 15000),
-        mission: 'Earth Observation',
-        launchDate: new Date('2018-10-29')
-      },
-      {
-        name: 'DubaiSat-2',
-        status: 'operational',
-        altitude: 600,
-        inclination: 97.8,
-        battery: 92,
-        temperature: -8,
-        signalStrength: 89,
-        dataRate: 150,
-        lastContact: new Date(Date.now() - 45000),
-        mission: 'Earth Observation',
-        launchDate: new Date('2013-11-21')
-      },
-      {
-        name: 'Nayif-1',
-        status: 'operational',
-        altitude: 400,
-        inclination: 51.6,
-        battery: 78,
-        temperature: 5,
-        signalStrength: 76,
-        dataRate: 9.6,
-        lastContact: new Date(Date.now() - 120000),
-        mission: 'Amateur Radio',
-        launchDate: new Date('2017-02-15')
-      },
-      {
-        name: 'MBZ-SAT',
-        status: 'operational',
-        altitude: 570,
-        inclination: 97.5,
-        battery: 91,
-        temperature: -15,
-        signalStrength: 98,
-        dataRate: 450,
-        lastContact: new Date(Date.now() - 8000),
-        mission: 'Earth Observation',
-        launchDate: new Date('2023-03-25')
-      },
-      {
-        name: 'DMSat-1',
-        status: 'operational',
-        altitude: 550,
-        inclination: 97.4,
-        battery: 85,
-        temperature: -10,
-        signalStrength: 92,
-        dataRate: 280,
-        lastContact: new Date(Date.now() - 25000),
-        mission: 'Hyperspectral Imaging',
-        launchDate: new Date('2021-03-22')
-      }
-    ];
+    fetchUAESatellites();
+    
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('uae-satellites')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'satellites',
+          filter: "country=eq.UAE"
+        },
+        () => {
+          fetchUAESatellites();
+        }
+      )
+      .subscribe();
 
-    setSatellites(uaeSatellites);
-    setSelectedSatellite(uaeSatellites[0].name);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
+
+  const fetchUAESatellites = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('satellites')
+        .select('*')
+        .eq('country', 'UAE')
+        .order('name');
+
+      if (error) throw error;
+
+      const uaeSatellites: UAESatellite[] = (data || []).map(sat => ({
+        id: sat.id,
+        name: sat.name,
+        status: sat.status as 'operational' | 'maintenance' | 'offline',
+        altitude: sat.altitude,
+        inclination: sat.inclination,
+        battery: sat.battery_level,
+        temperature: sat.temperature,
+        signalStrength: sat.signal_strength,
+        dataRate: Math.floor(Math.random() * 300) + 100, // Simulated data rate
+        lastContact: sat.last_contact ? new Date(sat.last_contact) : new Date(),
+        mission: sat.type,
+        type: sat.type
+      }));
+
+      setSatellites(uaeSatellites);
+      if (uaeSatellites.length > 0 && !selectedSatellite) {
+        setSelectedSatellite(uaeSatellites[0].name);
+      }
+    } catch (error) {
+      console.error('Error fetching UAE satellites:', error);
+      toast.error('Failed to load UAE satellites');
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -107,10 +96,14 @@ export const UAEDashboard = () => {
   };
 
   const getHealthStatus = (satellite: UAESatellite) => {
+    const battery = satellite.battery || 0;
+    const signal = satellite.signalStrength || 0;
+    const temp = satellite.temperature || 0;
+    
     const factors = [
-      satellite.battery > 80 ? 25 : satellite.battery > 60 ? 15 : 5,
-      satellite.signalStrength > 90 ? 25 : satellite.signalStrength > 70 ? 15 : 5,
-      satellite.temperature > -20 && satellite.temperature < 20 ? 25 : 15,
+      battery > 80 ? 25 : battery > 60 ? 15 : 5,
+      signal > 90 ? 25 : signal > 70 ? 15 : 5,
+      temp > -20 && temp < 20 ? 25 : 15,
       Date.now() - satellite.lastContact.getTime() < 60000 ? 25 : 10
     ];
     return factors.reduce((sum, factor) => sum + factor, 0);
@@ -198,19 +191,19 @@ export const UAEDashboard = () => {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="flex items-center space-x-1">
                         <Battery className="h-3 w-3" />
-                        <span>{satellite.battery}%</span>
+                        <span>{satellite.battery || 0}%</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Signal className="h-3 w-3" />
-                        <span>{satellite.signalStrength}%</span>
+                        <span>{satellite.signalStrength || 0}%</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Thermometer className="h-3 w-3" />
-                        <span>{satellite.temperature}°C</span>
+                        <span>{satellite.temperature || 0}°C</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Gauge className="h-3 w-3" />
-                        <span>{satellite.dataRate} Mbps</span>
+                        <span>{satellite.altitude || 0} km</span>
                       </div>
                     </div>
 
@@ -242,21 +235,19 @@ export const UAEDashboard = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Altitude:</span>
-                        <span className="text-sm font-medium">{selectedSat.altitude} km</span>
+                        <span className="text-sm font-medium">{selectedSat.altitude || 'N/A'} km</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Inclination:</span>
-                        <span className="text-sm font-medium">{selectedSat.inclination}°</span>
+                        <span className="text-sm font-medium">{selectedSat.inclination || 'N/A'}°</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Mission:</span>
                         <span className="text-sm font-medium">{selectedSat.mission}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Launch Date:</span>
-                        <span className="text-sm font-medium">
-                          {selectedSat.launchDate.toLocaleDateString()}
-                        </span>
+                        <span className="text-sm text-muted-foreground">Type:</span>
+                        <span className="text-sm font-medium">{selectedSat.type}</span>
                       </div>
                     </div>
                   </div>
@@ -267,27 +258,27 @@ export const UAEDashboard = () => {
                       <div>
                         <div className="flex justify-between mb-1">
                           <span className="text-sm">Battery Level</span>
-                          <span className="text-sm">{selectedSat.battery}%</span>
+                          <span className="text-sm">{selectedSat.battery || 0}%</span>
                         </div>
-                        <Progress value={selectedSat.battery} />
+                        <Progress value={selectedSat.battery || 0} />
                       </div>
 
                       <div>
                         <div className="flex justify-between mb-1">
                           <span className="text-sm">Signal Strength</span>
-                          <span className="text-sm">{selectedSat.signalStrength}%</span>
+                          <span className="text-sm">{selectedSat.signalStrength || 0}%</span>
                         </div>
-                        <Progress value={selectedSat.signalStrength} />
+                        <Progress value={selectedSat.signalStrength || 0} />
                       </div>
 
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Temperature:</span>
-                        <span className="text-sm font-medium">{selectedSat.temperature}°C</span>
+                        <span className="text-sm font-medium">{selectedSat.temperature || 0}°C</span>
                       </div>
 
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Data Rate:</span>
-                        <span className="text-sm font-medium">{selectedSat.dataRate} Mbps</span>
+                        <span className="text-sm text-muted-foreground">Last Contact:</span>
+                        <span className="text-sm font-medium">{selectedSat.lastContact.toLocaleTimeString()}</span>
                       </div>
                     </div>
                   </div>

@@ -113,8 +113,14 @@ Deno.serve(async (req) => {
             type = 'earth observation';
           }
 
-          // Identify UAE satellites
-          if (upperName.includes('KHALIFA') || upperName.includes('NAYIF') || upperName.includes('DUBAI') || upperName.includes('MBZ')) {
+          // Identify UAE satellites (more comprehensive list)
+          if (upperName.includes('KHALIFA') || 
+              upperName.includes('NAYIF') || 
+              upperName.includes('DUBAI') || 
+              upperName.includes('MBZ-SAT') || 
+              upperName.includes('DMSAT') ||
+              upperName.includes('DUBAISAT') ||
+              upperName.includes('YAHSAT')) {
             country = 'UAE';
             type = 'earth observation';
           }

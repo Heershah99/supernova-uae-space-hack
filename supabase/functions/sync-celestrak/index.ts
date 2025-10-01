@@ -51,7 +51,24 @@ Deno.serve(async (req) => {
       // Process each satellite
       for (const sat of data.slice(0, 50)) { // Limit to 50 per category to avoid overload
         try {
+          // Validate TLE data exists
+          if (!sat.TLE_LINE1 || !sat.TLE_LINE2 || !sat.OBJECT_NAME) {
+            console.error(`Skipping satellite - missing TLE data:`, sat.OBJECT_NAME || 'UNKNOWN');
+            continue;
+          }
+
+          // Check TLE line format (should be 69 characters)
+          if (sat.TLE_LINE1.length < 69 || sat.TLE_LINE2.length < 69) {
+            console.error(`Invalid TLE format for ${sat.OBJECT_NAME}`);
+            continue;
+          }
+
           const satrec = satellite.twoline2satrec(sat.TLE_LINE1, sat.TLE_LINE2);
+          
+          if (!satrec || satrec.error) {
+            console.error(`TLE parsing error for ${sat.OBJECT_NAME}:`, satrec?.error);
+            continue;
+          }
           
           // Get current position
           const now = new Date();
@@ -116,7 +133,7 @@ Deno.serve(async (req) => {
             last_contact: now.toISOString(),
           });
         } catch (error) {
-          console.error(`Error processing satellite ${sat.OBJECT_NAME}:`, error);
+          console.error(`Error processing satellite ${sat.OBJECT_NAME || 'UNKNOWN'}:`, error instanceof Error ? error.message : error);
         }
       }
     }

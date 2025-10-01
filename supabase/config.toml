@@ -2,3 +2,6 @@ project_id = "ciregulqzdtflmdszkjk"
 
 [functions.analyze-threats]
 verify_jwt = false
+
+[functions.sync-celestrak]
+verify_jwt = false

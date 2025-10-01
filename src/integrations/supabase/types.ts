@@ -14,16 +14,315 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          affected_assets: string[] | null
+          auto_response: string | null
+          created_at: string | null
+          description: string
+          id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          status: Database["public"]["Enums"]["alert_status"] | null
+          title: string
+          type: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          affected_assets?: string[] | null
+          auto_response?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          status?: Database["public"]["Enums"]["alert_status"] | null
+          title: string
+          type: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          affected_assets?: string[] | null
+          auto_response?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          status?: Database["public"]["Enums"]["alert_status"] | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collision_predictions: {
+        Row: {
+          created_at: string | null
+          id: string
+          miss_distance: number | null
+          predicted_time: string | null
+          probability: number | null
+          satellite1_id: string | null
+          satellite2_id: string | null
+          threat_level: Database["public"]["Enums"]["threat_level"] | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          miss_distance?: number | null
+          predicted_time?: string | null
+          probability?: number | null
+          satellite1_id?: string | null
+          satellite2_id?: string | null
+          threat_level?: Database["public"]["Enums"]["threat_level"] | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          miss_distance?: number | null
+          predicted_time?: string | null
+          probability?: number | null
+          satellite1_id?: string | null
+          satellite2_id?: string | null
+          threat_level?: Database["public"]["Enums"]["threat_level"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collision_predictions_satellite1_id_fkey"
+            columns: ["satellite1_id"]
+            isOneToOne: false
+            referencedRelation: "satellites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collision_predictions_satellite2_id_fkey"
+            columns: ["satellite2_id"]
+            isOneToOne: false
+            referencedRelation: "satellites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      satellites: {
+        Row: {
+          altitude: number | null
+          apogee: number | null
+          battery_level: number | null
+          country: string | null
+          created_at: string | null
+          id: string
+          inclination: number | null
+          last_contact: string | null
+          launch_date: string | null
+          name: string
+          perigee: number | null
+          period: number | null
+          position_x: number | null
+          position_y: number | null
+          position_z: number | null
+          signal_strength: number | null
+          status: Database["public"]["Enums"]["satellite_status"] | null
+          temperature: number | null
+          type: string
+          updated_at: string | null
+          velocity_x: number | null
+          velocity_y: number | null
+          velocity_z: number | null
+        }
+        Insert: {
+          altitude?: number | null
+          apogee?: number | null
+          battery_level?: number | null
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          inclination?: number | null
+          last_contact?: string | null
+          launch_date?: string | null
+          name: string
+          perigee?: number | null
+          period?: number | null
+          position_x?: number | null
+          position_y?: number | null
+          position_z?: number | null
+          signal_strength?: number | null
+          status?: Database["public"]["Enums"]["satellite_status"] | null
+          temperature?: number | null
+          type: string
+          updated_at?: string | null
+          velocity_x?: number | null
+          velocity_y?: number | null
+          velocity_z?: number | null
+        }
+        Update: {
+          altitude?: number | null
+          apogee?: number | null
+          battery_level?: number | null
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          inclination?: number | null
+          last_contact?: string | null
+          launch_date?: string | null
+          name?: string
+          perigee?: number | null
+          period?: number | null
+          position_x?: number | null
+          position_y?: number | null
+          position_z?: number | null
+          signal_strength?: number | null
+          status?: Database["public"]["Enums"]["satellite_status"] | null
+          temperature?: number | null
+          type?: string
+          updated_at?: string | null
+          velocity_x?: number | null
+          velocity_y?: number | null
+          velocity_z?: number | null
+        }
+        Relationships: []
+      }
+      threats: {
+        Row: {
+          created_at: string | null
+          description: string
+          detected_at: string | null
+          id: string
+          probability: number | null
+          recommendation: string | null
+          resolved_at: string | null
+          satellite_id: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          status: Database["public"]["Enums"]["alert_status"] | null
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          detected_at?: string | null
+          id?: string
+          probability?: number | null
+          recommendation?: string | null
+          resolved_at?: string | null
+          satellite_id?: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          status?: Database["public"]["Enums"]["alert_status"] | null
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          detected_at?: string | null
+          id?: string
+          probability?: number | null
+          recommendation?: string | null
+          resolved_at?: string | null
+          satellite_id?: string | null
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          status?: Database["public"]["Enums"]["alert_status"] | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "threats_satellite_id_fkey"
+            columns: ["satellite_id"]
+            isOneToOne: false
+            referencedRelation: "satellites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      alert_severity: "low" | "medium" | "high" | "critical"
+      alert_status: "active" | "acknowledged" | "resolved"
+      app_role: "admin" | "operator" | "viewer"
+      satellite_status: "operational" | "maintenance" | "critical" | "inactive"
+      threat_level: "low" | "medium" | "high" | "critical"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +449,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      alert_severity: ["low", "medium", "high", "critical"],
+      alert_status: ["active", "acknowledged", "resolved"],
+      app_role: ["admin", "operator", "viewer"],
+      satellite_status: ["operational", "maintenance", "critical", "inactive"],
+      threat_level: ["low", "medium", "high", "critical"],
+    },
   },
 } as const

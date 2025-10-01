@@ -9,11 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useSatellites } from '@/hooks/useSatellites';
 import { toast } from 'sonner';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, RefreshCw } from 'lucide-react';
 
 export const SatelliteManagement = () => {
   const { satellites, loading, refetch } = useSatellites();
   const [isAdding, setIsAdding] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     type: 'communication',
@@ -70,6 +71,26 @@ export const SatelliteManagement = () => {
     }
   };
 
+  const handleSyncCelesTrak = async () => {
+    setIsSyncing(true);
+    try {
+      toast.loading('Fetching real satellite data from CelesTrak...');
+      
+      const { data, error } = await supabase.functions.invoke('sync-celestrak');
+      
+      if (error) throw error;
+      
+      toast.dismiss();
+      toast.success(`Successfully synced ${data.satellites} satellites from CelesTrak!`);
+      refetch();
+    } catch (error: any) {
+      toast.dismiss();
+      toast.error(error.message || 'Failed to sync with CelesTrak');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this satellite?')) return;
 
@@ -99,10 +120,20 @@ export const SatelliteManagement = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Satellite Fleet Management</CardTitle>
-            <Button onClick={() => setIsAdding(!isAdding)}>
-              <Plus className="mr-2 h-4 w-4" />
-              {isAdding ? 'Cancel' : 'Add Satellite'}
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleSyncCelesTrak} 
+                disabled={isSyncing}
+                variant="outline"
+              >
+                <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                {isSyncing ? 'Syncing...' : 'Sync CelesTrak'}
+              </Button>
+              <Button onClick={() => setIsAdding(!isAdding)}>
+                <Plus className="mr-2 h-4 w-4" />
+                {isAdding ? 'Cancel' : 'Add Manual'}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

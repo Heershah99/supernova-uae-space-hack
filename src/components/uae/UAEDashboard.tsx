@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Satellite, MapPin, Battery, Signal, Thermometer, Gauge } from 'lucide-react';
+import { Satellite, Battery, Signal, Thermometer, Gauge } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -26,32 +26,7 @@ export const UAEDashboard = () => {
   const [satellites, setSatellites] = useState<UAESatellite[]>([]);
   const [selectedSatellite, setSelectedSatellite] = useState<string>('');
 
-  useEffect(() => {
-    fetchUAESatellites();
-    
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('uae-satellites')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'satellites',
-          filter: "country=eq.UAE"
-        },
-        () => {
-          fetchUAESatellites();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchUAESatellites = async () => {
+  const fetchUAESatellites = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('satellites')
@@ -84,7 +59,32 @@ export const UAEDashboard = () => {
       console.error('Error fetching UAE satellites:', error);
       toast.error('Failed to load UAE satellites');
     }
-  };
+  }, [selectedSatellite]);
+
+  useEffect(() => {
+    fetchUAESatellites();
+    
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('uae-satellites')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'satellites',
+          filter: "country=eq.UAE"
+        },
+        () => {
+          fetchUAESatellites();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchUAESatellites]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -147,7 +147,7 @@ export const UAEDashboard = () => {
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-purple-500">
-                {Math.round(satellites.reduce((sum, sat) => sum + getHealthStatus(sat), 0) / satellites.length)}%
+                {satellites.length > 0 ? Math.round(satellites.reduce((sum, sat) => sum + getHealthStatus(sat), 0) / satellites.length) : 0}%
               </div>
               <p className="text-sm text-muted-foreground">Avg Health</p>
             </div>

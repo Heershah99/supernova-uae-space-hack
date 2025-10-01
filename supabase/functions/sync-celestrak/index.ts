@@ -6,11 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface CelesTrakSatellite {
-  name: string;
-  line1: string;
-  line2: string;
-}
+// CelesTrak returns 3-line TLE format when using FORMAT=tle
+// Line 0: Satellite name
+// Line 1: TLE Line 1
+// Line 2: TLE Line 2
 
 Deno.serve(async (req) => {
   console.log('Sync-celestrak function invoked');
@@ -38,35 +37,42 @@ Deno.serve(async (req) => {
     for (const category of categories) {
       console.log(`Fetching ${category} satellites from CelesTrak...`);
       
-      const response = await fetch(`https://celestrak.org/NORAD/elements/gp.php?GROUP=${category}&FORMAT=json`);
+      // Use TLE format to get actual TLE lines
+      const response = await fetch(`https://celestrak.org/NORAD/elements/gp.php?GROUP=${category}&FORMAT=tle`);
       
       if (!response.ok) {
         console.error(`Failed to fetch ${category}:`, response.statusText);
         continue;
       }
 
-      const data = await response.json();
-      console.log(`Received ${data.length} satellites from ${category}`);
+      const tleText = await response.text();
+      const lines = tleText.trim().split('\n');
+      console.log(`Received ${lines.length / 3} satellites from ${category}`);
 
-      // Process each satellite
-      for (const sat of data.slice(0, 50)) { // Limit to 50 per category to avoid overload
+      // Process TLE data in groups of 3 lines (name, line1, line2)
+      for (let i = 0; i < lines.length && i < 150; i += 3) { // Limit to 50 per category (150 lines)
+        if (i + 2 >= lines.length) break;
+        
+        const name = lines[i].trim();
+        const line1 = lines[i + 1].trim();
+        const line2 = lines[i + 2].trim();
+        
         try {
-          // Validate TLE data exists
-          if (!sat.TLE_LINE1 || !sat.TLE_LINE2 || !sat.OBJECT_NAME) {
-            console.error(`Skipping satellite - missing TLE data:`, sat.OBJECT_NAME || 'UNKNOWN');
+          // Validate TLE data exists and has correct length
+          if (!name || !line1 || !line2) {
+            console.error(`Skipping satellite - missing TLE data:`, name || 'UNKNOWN');
             continue;
           }
 
-          // Check TLE line format (should be 69 characters)
-          if (sat.TLE_LINE1.length < 69 || sat.TLE_LINE2.length < 69) {
-            console.error(`Invalid TLE format for ${sat.OBJECT_NAME}`);
+          if (line1.length < 69 || line2.length < 69) {
+            console.error(`Invalid TLE format for ${name}`);
             continue;
           }
 
-          const satrec = satellite.twoline2satrec(sat.TLE_LINE1, sat.TLE_LINE2);
+          const satrec = satellite.twoline2satrec(line1, line2);
           
           if (!satrec || satrec.error) {
-            console.error(`TLE parsing error for ${sat.OBJECT_NAME}:`, satrec?.error);
+            console.error(`TLE parsing error for ${name}:`, satrec?.error);
             continue;
           }
           
@@ -95,26 +101,26 @@ Deno.serve(async (req) => {
           // Determine satellite type based on name patterns
           let type = 'scientific';
           let country = 'International';
-          const name = sat.OBJECT_NAME.toUpperCase();
+          const upperName = name.toUpperCase();
           
-          if (name.includes('ISS') || name.includes('STATION')) {
+          if (upperName.includes('ISS') || upperName.includes('STATION')) {
             type = 'space station';
-          } else if (name.includes('GPS') || name.includes('GLONASS') || name.includes('GALILEO')) {
+          } else if (upperName.includes('GPS') || upperName.includes('GLONASS') || upperName.includes('GALILEO')) {
             type = 'navigation';
-          } else if (name.includes('STARLINK') || name.includes('IRIDIUM') || name.includes('INTELSAT')) {
+          } else if (upperName.includes('STARLINK') || upperName.includes('IRIDIUM') || upperName.includes('INTELSAT')) {
             type = 'communication';
-          } else if (name.includes('LANDSAT') || name.includes('SENTINEL') || name.includes('TERRA')) {
+          } else if (upperName.includes('LANDSAT') || upperName.includes('SENTINEL') || upperName.includes('TERRA')) {
             type = 'earth observation';
           }
 
           // Identify UAE satellites
-          if (name.includes('KHALIFA') || name.includes('NAYIF') || name.includes('DUBAI') || name.includes('MBZ')) {
+          if (upperName.includes('KHALIFA') || upperName.includes('NAYIF') || upperName.includes('DUBAI') || upperName.includes('MBZ')) {
             country = 'UAE';
             type = 'earth observation';
           }
 
           allSatellites.push({
-            name: sat.OBJECT_NAME,
+            name: name,
             type,
             country,
             status: 'operational',
@@ -133,7 +139,7 @@ Deno.serve(async (req) => {
             last_contact: now.toISOString(),
           });
         } catch (error) {
-          console.error(`Error processing satellite ${sat.OBJECT_NAME || 'UNKNOWN'}:`, error instanceof Error ? error.message : error);
+          console.error(`Error processing satellite ${name || 'UNKNOWN'}:`, error instanceof Error ? error.message : error);
         }
       }
     }

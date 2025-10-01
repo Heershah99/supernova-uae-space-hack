@@ -113,7 +113,21 @@ export type Database = {
             foreignKeyName: "collision_predictions_satellite1_id_fkey"
             columns: ["satellite1_id"]
             isOneToOne: false
+            referencedRelation: "satellite_orbital_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collision_predictions_satellite1_id_fkey"
+            columns: ["satellite1_id"]
+            isOneToOne: false
             referencedRelation: "satellites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collision_predictions_satellite2_id_fkey"
+            columns: ["satellite2_id"]
+            isOneToOne: false
+            referencedRelation: "satellite_orbital_view"
             referencedColumns: ["id"]
           },
           {
@@ -275,6 +289,13 @@ export type Database = {
             foreignKeyName: "threats_satellite_id_fkey"
             columns: ["satellite_id"]
             isOneToOne: false
+            referencedRelation: "satellite_orbital_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "threats_satellite_id_fkey"
+            columns: ["satellite_id"]
+            isOneToOne: false
             referencedRelation: "satellites"
             referencedColumns: ["id"]
           },
@@ -306,7 +327,87 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      satellite_orbital_view: {
+        Row: {
+          altitude: number | null
+          battery_level: number | null
+          country: string | null
+          created_at: string | null
+          distance_from_center: number | null
+          id: string | null
+          inclination: number | null
+          last_contact: string | null
+          latitude: number | null
+          longitude: number | null
+          name: string | null
+          orbital_speed: number | null
+          period: number | null
+          position_x: number | null
+          position_y: number | null
+          position_z: number | null
+          signal_strength: number | null
+          status: Database["public"]["Enums"]["satellite_status"] | null
+          temperature: number | null
+          type: string | null
+          updated_at: string | null
+          velocity_x: number | null
+          velocity_y: number | null
+          velocity_z: number | null
+        }
+        Insert: {
+          altitude?: number | null
+          battery_level?: number | null
+          country?: string | null
+          created_at?: string | null
+          distance_from_center?: never
+          id?: string | null
+          inclination?: number | null
+          last_contact?: string | null
+          latitude?: never
+          longitude?: never
+          name?: string | null
+          orbital_speed?: never
+          period?: number | null
+          position_x?: number | null
+          position_y?: number | null
+          position_z?: number | null
+          signal_strength?: number | null
+          status?: Database["public"]["Enums"]["satellite_status"] | null
+          temperature?: number | null
+          type?: string | null
+          updated_at?: string | null
+          velocity_x?: number | null
+          velocity_y?: number | null
+          velocity_z?: number | null
+        }
+        Update: {
+          altitude?: number | null
+          battery_level?: number | null
+          country?: string | null
+          created_at?: string | null
+          distance_from_center?: never
+          id?: string | null
+          inclination?: number | null
+          last_contact?: string | null
+          latitude?: never
+          longitude?: never
+          name?: string | null
+          orbital_speed?: never
+          period?: number | null
+          position_x?: number | null
+          position_y?: number | null
+          position_z?: number | null
+          signal_strength?: number | null
+          status?: Database["public"]["Enums"]["satellite_status"] | null
+          temperature?: number | null
+          type?: string | null
+          updated_at?: string | null
+          velocity_x?: number | null
+          velocity_y?: number | null
+          velocity_z?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

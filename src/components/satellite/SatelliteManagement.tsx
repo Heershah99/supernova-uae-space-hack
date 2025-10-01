@@ -75,15 +75,29 @@ export const SatelliteManagement = () => {
     setIsSyncing(true);
     try {
       toast.loading('Fetching real satellite data from CelesTrak...');
+      console.log('Starting CelesTrak sync...');
       
-      const { data, error } = await supabase.functions.invoke('sync-celestrak');
+      const { data, error } = await supabase.functions.invoke('sync-celestrak', {
+        body: {}
+      });
       
-      if (error) throw error;
+      console.log('Response:', { data, error });
+      
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+      
+      if (data?.success === false) {
+        console.error('Sync failed:', data.error);
+        throw new Error(data.error || 'Sync failed');
+      }
       
       toast.dismiss();
       toast.success(`Successfully synced ${data.satellites} satellites from CelesTrak!`);
-      refetch();
+      await refetch();
     } catch (error: any) {
+      console.error('Sync error:', error);
       toast.dismiss();
       toast.error(error.message || 'Failed to sync with CelesTrak');
     } finally {

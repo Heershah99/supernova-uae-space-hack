@@ -13,14 +13,18 @@ interface CelesTrakSatellite {
 }
 
 Deno.serve(async (req) => {
+  console.log('Sync-celestrak function invoked');
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('Initializing Supabase client...');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('Supabase client initialized');
 
     // Fetch TLE data from CelesTrak for various categories
     const categories = [

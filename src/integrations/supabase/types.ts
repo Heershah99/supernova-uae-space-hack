@@ -244,6 +244,102 @@ export type Database = {
         }
         Relationships: []
       }
+      space_weather: {
+        Row: {
+          ap_daily: number | null
+          ap1: number | null
+          ap2: number | null
+          ap3: number | null
+          ap4: number | null
+          ap5: number | null
+          ap6: number | null
+          ap7: number | null
+          ap8: number | null
+          bartels_solar_rotation: number
+          created_at: string | null
+          data_quality: number | null
+          date: string
+          day_within_rotation: number
+          days: number
+          days_midday: number
+          f107_adj: number | null
+          f107_obs: number | null
+          id: string
+          kp1: number | null
+          kp2: number | null
+          kp3: number | null
+          kp4: number | null
+          kp5: number | null
+          kp6: number | null
+          kp7: number | null
+          kp8: number | null
+          sunspot_number: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          ap_daily?: number | null
+          ap1?: number | null
+          ap2?: number | null
+          ap3?: number | null
+          ap4?: number | null
+          ap5?: number | null
+          ap6?: number | null
+          ap7?: number | null
+          ap8?: number | null
+          bartels_solar_rotation: number
+          created_at?: string | null
+          data_quality?: number | null
+          date: string
+          day_within_rotation: number
+          days: number
+          days_midday: number
+          f107_adj?: number | null
+          f107_obs?: number | null
+          id?: string
+          kp1?: number | null
+          kp2?: number | null
+          kp3?: number | null
+          kp4?: number | null
+          kp5?: number | null
+          kp6?: number | null
+          kp7?: number | null
+          kp8?: number | null
+          sunspot_number?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          ap_daily?: number | null
+          ap1?: number | null
+          ap2?: number | null
+          ap3?: number | null
+          ap4?: number | null
+          ap5?: number | null
+          ap6?: number | null
+          ap7?: number | null
+          ap8?: number | null
+          bartels_solar_rotation?: number
+          created_at?: string | null
+          data_quality?: number | null
+          date?: string
+          day_within_rotation?: number
+          days?: number
+          days_midday?: number
+          f107_adj?: number | null
+          f107_obs?: number | null
+          id?: string
+          kp1?: number | null
+          kp2?: number | null
+          kp3?: number | null
+          kp4?: number | null
+          kp5?: number | null
+          kp6?: number | null
+          kp7?: number | null
+          kp8?: number | null
+          sunspot_number?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       threats: {
         Row: {
           created_at: string | null

@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.sync-celestrak]
 verify_jwt = false
+
+[functions.sync-space-weather]
+verify_jwt = false

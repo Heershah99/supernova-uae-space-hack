@@ -9,8 +9,10 @@ export const generateDemoData = async () => {
     // Clear existing demo data first
     await supabase.from('debris_detections').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     await supabase.from('alerts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('collision_predictions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('threats').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     
-    // Generate UAE satellites
+    // Generate UAE satellites - comprehensive fleet
     const uaeSatellites = [
       {
         name: "KhalifaSat",
@@ -19,9 +21,9 @@ export const generateDemoData = async () => {
         status: "operational" as const,
         altitude: 613,
         inclination: 97.8,
-        battery_level: 92,
-        signal_strength: 88,
-        temperature: 21,
+        battery_level: 95,
+        signal_strength: 98,
+        temperature: -15,
         position_x: 4821.3,
         position_y: -1234.7,
         position_z: 4521.8,
@@ -30,21 +32,55 @@ export const generateDemoData = async () => {
         velocity_z: 4.2
       },
       {
+        name: "MBZ-SAT",
+        type: "Earth Observation",
+        country: "UAE",
+        status: "operational" as const,
+        altitude: 550,
+        inclination: 97.5,
+        battery_level: 92,
+        signal_strength: 96,
+        temperature: -12,
+        position_x: 4650.8,
+        position_y: -1145.3,
+        position_z: 4412.6,
+        velocity_x: -1.3,
+        velocity_y: 5.9,
+        velocity_z: 4.1
+      },
+      {
         name: "DubaiSat-1",
         type: "Remote Sensing",
         country: "UAE",
         status: "operational" as const,
         altitude: 680,
         inclination: 98.2,
-        battery_level: 85,
-        signal_strength: 91,
-        temperature: 19,
+        battery_level: 88,
+        signal_strength: 94,
+        temperature: -18,
         position_x: 5120.4,
         position_y: -987.2,
         position_z: 4823.1,
         velocity_x: -1.5,
         velocity_y: 6.1,
         velocity_z: 3.9
+      },
+      {
+        name: "Nayif-1",
+        type: "CubeSat",
+        country: "UAE",
+        status: "maintenance" as const,
+        altitude: 520,
+        inclination: 97.3,
+        battery_level: 72,
+        signal_strength: 85,
+        temperature: -10,
+        position_x: 4423.7,
+        position_y: -1298.4,
+        position_z: 4189.3,
+        velocity_x: -1.1,
+        velocity_y: 5.7,
+        velocity_z: 4.3
       },
       {
         name: "Hope Mars Mission",
@@ -65,7 +101,7 @@ export const generateDemoData = async () => {
       }
     ];
 
-    // Generate international satellites
+    // Generate international satellites - diverse fleet
     const internationalSatellites = [
       {
         name: "ISS",
@@ -117,6 +153,125 @@ export const generateDemoData = async () => {
         velocity_x: -1.4,
         velocity_y: 6.0,
         velocity_z: 4.0
+      },
+      {
+        name: "Starlink-1234",
+        type: "Communication",
+        country: "USA",
+        status: "operational" as const,
+        altitude: 550,
+        inclination: 53.0,
+        battery_level: 84,
+        signal_strength: 91,
+        temperature: 15,
+        position_x: 4689.3,
+        position_y: -1123.8,
+        position_z: 4445.7,
+        velocity_x: -1.3,
+        velocity_y: 5.9,
+        velocity_z: 4.0
+      },
+      {
+        name: "GSAT-30",
+        type: "Communication",
+        country: "India",
+        status: "operational" as const,
+        altitude: 35786,
+        inclination: 0.1,
+        battery_level: 89,
+        signal_strength: 87,
+        temperature: -8,
+        position_x: 28456.1,
+        position_y: 15234.5,
+        position_z: 8923.4,
+        velocity_x: -3.1,
+        velocity_y: 1.2,
+        velocity_z: 0.5
+      },
+      {
+        name: "Tiangong Space Station",
+        type: "Space Station",
+        country: "China",
+        status: "operational" as const,
+        altitude: 380,
+        inclination: 41.5,
+        battery_level: 93,
+        signal_strength: 96,
+        temperature: 21,
+        position_x: 4234.8,
+        position_y: 1987.3,
+        position_z: 3812.6,
+        velocity_x: -5.3,
+        velocity_y: 3.9,
+        velocity_z: 4.2
+      },
+      {
+        name: "TerraSAR-X",
+        type: "Earth Observation",
+        country: "Germany",
+        status: "operational" as const,
+        altitude: 514,
+        inclination: 97.44,
+        battery_level: 86,
+        signal_strength: 90,
+        temperature: 17,
+        position_x: 4567.2,
+        position_y: -1234.9,
+        position_z: 4301.8,
+        velocity_x: -1.2,
+        velocity_y: 5.8,
+        velocity_z: 4.1
+      },
+      {
+        name: "ALOS-2",
+        type: "Earth Observation",
+        country: "Japan",
+        status: "operational" as const,
+        altitude: 628,
+        inclination: 97.92,
+        battery_level: 82,
+        signal_strength: 88,
+        temperature: 19,
+        position_x: 4923.7,
+        position_y: -1089.4,
+        position_z: 4634.2,
+        velocity_x: -1.4,
+        velocity_y: 6.0,
+        velocity_z: 3.9
+      },
+      {
+        name: "MetOp-C",
+        type: "Weather",
+        country: "ESA",
+        status: "maintenance" as const,
+        altitude: 817,
+        inclination: 98.7,
+        battery_level: 67,
+        signal_strength: 74,
+        temperature: 23,
+        position_x: 5489.1,
+        position_y: -923.7,
+        position_z: 5123.8,
+        velocity_x: -1.6,
+        velocity_y: 6.2,
+        velocity_z: 3.7
+      },
+      {
+        name: "COSMIC-2",
+        type: "Weather",
+        country: "USA",
+        status: "operational" as const,
+        altitude: 720,
+        inclination: 24.0,
+        battery_level: 90,
+        signal_strength: 92,
+        temperature: 16,
+        position_x: 5089.4,
+        position_y: 2145.8,
+        position_z: 4756.3,
+        velocity_x: -2.8,
+        velocity_y: 5.1,
+        velocity_z: 3.2
       }
     ];
 
@@ -124,7 +279,7 @@ export const generateDemoData = async () => {
     const allSatellites = [...uaeSatellites, ...internationalSatellites];
     await supabase.from('satellites').upsert(allSatellites, { onConflict: 'name' });
 
-    // Generate emergency alerts
+    // Generate comprehensive emergency alerts
     const alerts = [
       {
         title: "High Collision Risk - KhalifaSat",
@@ -152,10 +307,105 @@ export const generateDemoData = async () => {
         affected_assets: ["DubaiSat-1"],
         status: "acknowledged" as const,
         auto_response: "Backup ground station activated. Diagnostics running."
+      },
+      {
+        title: "Battery Low - Nayif-1",
+        description: "Battery level at 72%. Entering power conservation mode.",
+        type: "system_anomaly",
+        severity: "medium" as const,
+        affected_assets: ["Nayif-1"],
+        status: "active" as const,
+        auto_response: "Non-critical systems powered down. Solar panel reorientation in progress."
+      },
+      {
+        title: "Debris Cloud Detected - LEO Corridor",
+        description: "Multiple debris fragments detected in LEO corridor. All satellites at risk.",
+        type: "collision_warning",
+        severity: "high" as const,
+        affected_assets: ["KhalifaSat", "MBZ-SAT", "DubaiSat-1", "ISS", "Sentinel-1A"],
+        status: "active" as const,
+        auto_response: "Tracking initiated. Collision probability calculations in progress."
+      },
+      {
+        title: "Ground Station Maintenance",
+        description: "Dubai ground station offline for scheduled maintenance.",
+        type: "system_anomaly",
+        severity: "low" as const,
+        affected_assets: ["UAE Ground Network"],
+        status: "resolved" as const,
+        auto_response: "Backup ground stations activated. All communications maintained."
       }
     ];
 
     await supabase.from('alerts').insert(alerts);
+
+    // Generate collision predictions
+    const collisionPredictions = [
+      {
+        satellite1_id: null, // Will be filled in real scenario
+        satellite2_id: null,
+        probability: 0.15,
+        predicted_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+        miss_distance: 1.8,
+        threat_level: "high" as const
+      },
+      {
+        satellite1_id: null,
+        satellite2_id: null,
+        probability: 0.08,
+        predicted_time: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours from now
+        miss_distance: 3.2,
+        threat_level: "medium" as const
+      },
+      {
+        satellite1_id: null,
+        satellite2_id: null,
+        probability: 0.25,
+        predicted_time: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(), // 12 hours from now
+        miss_distance: 0.9,
+        threat_level: "critical" as const
+      }
+    ];
+
+    await supabase.from('collision_predictions').insert(collisionPredictions);
+
+    // Generate threats
+    const threats = [
+      {
+        type: "collision_risk",
+        severity: "critical" as const,
+        description: "High-velocity debris on collision course with KhalifaSat",
+        probability: 0.25,
+        recommendation: "Execute evasive maneuver within 6 hours. Coordinate with ground control.",
+        status: "active" as const
+      },
+      {
+        type: "space_weather",
+        severity: "high" as const,
+        description: "Solar flare activity increasing. Radiation levels rising.",
+        probability: 0.85,
+        recommendation: "Switch to safe mode. Shield sensitive electronics.",
+        status: "active" as const
+      },
+      {
+        type: "system_failure",
+        severity: "medium" as const,
+        description: "Attitude control system anomaly detected on Nayif-1",
+        probability: 0.45,
+        recommendation: "Run diagnostics. Prepare backup systems.",
+        status: "acknowledged" as const
+      },
+      {
+        type: "orbital_decay",
+        severity: "low" as const,
+        description: "Gradual altitude loss detected on MetOp-C",
+        probability: 0.90,
+        recommendation: "Schedule orbital boost maneuver within 30 days.",
+        status: "active" as const
+      }
+    ];
+
+    await supabase.from('threats').insert(threats);
 
     // Generate debris detections with real image URLs
     const detections = [

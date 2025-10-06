@@ -19,8 +19,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch the space weather data
-    const response = await fetch('https://www-app3.gfz-potsdam.de/kp_index/Kp_ap_Ap_SN_F107_nowcast.txt');
+    // Fetch the historical space weather data from 1932
+    const response = await fetch('https://www-app3.gfz-potsdam.de/kp_index/Kp_ap_Ap_SN_F107_since_1932.txt');
     
     if (!response.ok) {
       throw new Error(`Failed to fetch space weather data: ${response.statusText}`);

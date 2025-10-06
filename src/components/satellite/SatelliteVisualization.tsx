@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Play, Pause, RotateCcw } from 'lucide-react';
+import { useDebrisTracking } from '@/hooks/useDebrisTracking';
+import { useSatellites } from '@/hooks/useSatellites';
 
 // Nebula background effect
 function SpaceEnvironment() {
@@ -259,6 +261,137 @@ function ISSTracker() {
   );
 }
 
+// Debris particle with danger visualization
+function DebrisParticle({ 
+  position, 
+  size = 0.02,
+  type,
+  threatLevel 
+}: { 
+  position: [number, number, number]; 
+  size?: number;
+  type: string;
+  threatLevel?: string;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  
+  useFrame(({ clock }) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x += 0.05;
+      meshRef.current.rotation.y += 0.03;
+    }
+  });
+
+  const getColor = () => {
+    if (threatLevel === 'critical') return '#ff0000';
+    if (threatLevel === 'high') return '#ff6b00';
+    if (threatLevel === 'medium') return '#ffaa00';
+    if (type === 'rocket_body') return '#888888';
+    if (type === 'defunct_satellite') return '#666666';
+    return '#999999';
+  };
+
+  return (
+    <group position={position}>
+      <mesh ref={meshRef}>
+        <dodecahedronGeometry args={[size, 0]} />
+        <meshStandardMaterial
+          color={getColor()}
+          emissive={getColor()}
+          emissiveIntensity={threatLevel ? 0.8 : 0.3}
+          metalness={0.6}
+          roughness={0.4}
+        />
+      </mesh>
+      {threatLevel && (
+        <mesh>
+          <sphereGeometry args={[size * 3, 16, 16]} />
+          <meshBasicMaterial
+            color={getColor()}
+            transparent
+            opacity={0.15}
+            blending={THREE.AdditiveBlending}
+          />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+// Debris field visualization
+function DebrisField({ debrisData }: { debrisData: any[] }) {
+  return (
+    <>
+      {debrisData.slice(0, 100).map((debris) => {
+        // Convert position to visualization scale
+        const earthRadius = 1; // Our Earth sphere radius
+        const realEarthRadius = 6371; // km
+        const scale = earthRadius / realEarthRadius;
+        
+        const posX = debris.position_x * scale;
+        const posY = debris.position_y * scale;
+        const posZ = debris.position_z * scale;
+        
+        return (
+          <DebrisParticle
+            key={debris.id}
+            position={[posX, posY, posZ]}
+            size={Math.max(0.015, Math.min(0.04, debris.size * 0.01))}
+            type={debris.type}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+// Collision risk zones
+function CollisionRiskZones({ risks }: { risks: any[] }) {
+  return (
+    <>
+      {risks.slice(0, 5).map((risk, idx) => {
+        const AnimatedRiskZone = () => {
+          const meshRef = useRef<THREE.Mesh>(null);
+          
+          useFrame(({ clock }) => {
+            if (meshRef.current) {
+              const pulse = Math.sin(clock.getElapsedTime() * 2) * 0.1 + 0.9;
+              meshRef.current.scale.setScalar(pulse);
+            }
+          });
+
+          // Random position in orbit for demo
+          const angle = (idx / 5) * Math.PI * 2;
+          const radius = 1.5 + Math.random() * 0.5;
+          const x = radius * Math.cos(angle);
+          const y = (Math.random() - 0.5) * 0.5;
+          const z = radius * Math.sin(angle);
+
+          const getColor = () => {
+            if (risk.threat_level === 'critical') return '#ff0000';
+            if (risk.threat_level === 'high') return '#ff6b00';
+            return '#ffaa00';
+          };
+
+          return (
+            <mesh ref={meshRef} position={[x, y, z]}>
+              <sphereGeometry args={[0.15, 16, 16]} />
+              <meshBasicMaterial
+                color={getColor()}
+                transparent
+                opacity={0.25}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+          );
+        };
+        
+        return <AnimatedRiskZone key={risk.id} />;
+      })}
+    </>
+  );
+}
+
 // Constellation with varied orbits
 function SatelliteConstellation() {
   const [satellites, setSatellites] = useState<Array<{
@@ -320,6 +453,13 @@ function SatelliteConstellation() {
 
 export const SatelliteVisualization = () => {
   const [isPlaying, setIsPlaying] = useState(true);
+  const { debris, collisionRisks, loading: debrisLoading } = useDebrisTracking();
+  const { satellites, loading: satLoading } = useSatellites();
+
+  const totalTracked = satellites.length + debris.length;
+  const highRiskCount = collisionRisks.filter(r => r.threat_level === 'critical' || r.threat_level === 'high').length;
+  const mediumRiskCount = collisionRisks.filter(r => r.threat_level === 'medium').length;
+  const lowRiskCount = collisionRisks.filter(r => r.threat_level === 'low').length;
 
   return (
     <div className="space-y-6">
@@ -354,7 +494,10 @@ export const SatelliteVisualization = () => {
             🇦🇪 UAE Satellites - 12
           </Badge>
           <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 shadow-lg shadow-blue-500/10">
-            📡 Tracked - 1,247
+            📡 Tracked - {totalTracked}
+          </Badge>
+          <Badge className="bg-red-500/20 text-red-400 border-red-500/30 shadow-lg shadow-red-500/10">
+            ⚠️ Debris - {debris.length}
           </Badge>
         </div>
       </div>
@@ -381,6 +524,13 @@ export const SatelliteVisualization = () => {
           <Earth />
           <ISSTracker />
           <SatelliteConstellation />
+          
+          {!debrisLoading && debris.length > 0 && (
+            <>
+              <DebrisField debrisData={debris} />
+              <CollisionRiskZones risks={collisionRisks} />
+            </>
+          )}
           
           <OrbitControls
             enablePan={true}
@@ -456,15 +606,15 @@ export const SatelliteVisualization = () => {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">High Risk:</span>
-                <span className="text-sm font-bold text-red-400">2</span>
+                <span className="text-sm font-bold text-red-400">{highRiskCount}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Medium Risk:</span>
-                <span className="text-sm font-bold text-amber-400">7</span>
+                <span className="text-sm font-bold text-amber-400">{mediumRiskCount}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Low Risk:</span>
-                <span className="text-sm font-bold text-emerald-400">45</span>
+                <span className="text-sm font-bold text-emerald-400">{lowRiskCount}</span>
               </div>
             </div>
           </CardContent>

@@ -1,5 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import debrisLeoAlpha from "@/assets/debris-leo-alpha-001.jpg";
+import debrisLeoBeta from "@/assets/debris-leo-beta-002.jpg";
+import debrisGeoGamma from "@/assets/debris-geo-gamma-003.jpg";
 
 export const generateDemoData = async () => {
   try {
@@ -150,37 +153,106 @@ export const generateDemoData = async () => {
 
     await supabase.from('alerts').insert(alerts);
 
-    // Generate debris detections
+    // Generate debris detections with real image URLs
     const detections = [
       {
         image_name: "leo-sector-alpha-001.jpg",
-        x1: 150,
-        y1: 200,
-        x2: 250,
-        y2: 300,
+        image_url: debrisLeoAlpha,
+        x1: 120,
+        y1: 180,
+        x2: 280,
+        y2: 320,
         confidence: 0.94,
         debris_type: "rocket_body",
         notes: "Large debris fragment detected in LEO corridor"
       },
       {
         image_name: "leo-sector-alpha-001.jpg",
-        x1: 400,
-        y1: 150,
-        x2: 450,
-        y2: 200,
+        image_url: debrisLeoAlpha,
+        x1: 450,
+        y1: 120,
+        x2: 580,
+        y2: 240,
         confidence: 0.87,
         debris_type: "defunct_satellite",
         notes: "Inactive satellite component"
       },
       {
-        image_name: "leo-sector-beta-002.jpg",
-        x1: 100,
+        image_name: "leo-sector-alpha-001.jpg",
+        image_url: debrisLeoAlpha,
+        x1: 850,
         y1: 300,
-        x2: 180,
-        y2: 380,
-        confidence: 0.91,
+        x2: 950,
+        y2: 400,
+        confidence: 0.78,
         debris_type: "debris",
-        notes: "Small debris cluster"
+        notes: "Small metallic fragment"
+      },
+      {
+        image_name: "leo-sector-beta-002.jpg",
+        image_url: debrisLeoBeta,
+        x1: 180,
+        y1: 250,
+        x2: 380,
+        y2: 420,
+        confidence: 0.91,
+        debris_type: "defunct_satellite",
+        notes: "Large defunct satellite detected"
+      },
+      {
+        image_name: "leo-sector-beta-002.jpg",
+        image_url: debrisLeoBeta,
+        x1: 520,
+        y1: 180,
+        x2: 680,
+        y2: 320,
+        confidence: 0.85,
+        debris_type: "debris",
+        notes: "Medium-sized debris cluster"
+      },
+      {
+        image_name: "leo-sector-beta-002.jpg",
+        image_url: debrisLeoBeta,
+        x1: 820,
+        y1: 420,
+        x2: 920,
+        y2: 520,
+        confidence: 0.72,
+        debris_type: "debris",
+        notes: "Small debris fragment"
+      },
+      {
+        image_name: "geo-sector-gamma-003.jpg",
+        image_url: debrisGeoGamma,
+        x1: 220,
+        y1: 150,
+        x2: 380,
+        y2: 280,
+        confidence: 0.96,
+        debris_type: "rocket_body",
+        notes: "Rocket stage debris in GEO"
+      },
+      {
+        image_name: "geo-sector-gamma-003.jpg",
+        image_url: debrisGeoGamma,
+        x1: 650,
+        y1: 320,
+        x2: 780,
+        y2: 450,
+        confidence: 0.89,
+        debris_type: "debris",
+        notes: "Metal fragment from collision event"
+      },
+      {
+        image_name: "geo-sector-gamma-003.jpg",
+        image_url: debrisGeoGamma,
+        x1: 980,
+        y1: 200,
+        x2: 1080,
+        y2: 300,
+        confidence: 0.81,
+        debris_type: "defunct_satellite",
+        notes: "Decommissioned satellite component"
       }
     ];
 

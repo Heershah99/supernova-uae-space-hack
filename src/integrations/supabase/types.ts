@@ -139,6 +139,57 @@ export type Database = {
           },
         ]
       }
+      debris_detections: {
+        Row: {
+          confidence: number
+          created_at: string
+          debris_type: string | null
+          detection_time: string
+          id: string
+          image_name: string
+          image_url: string | null
+          linked_debris_id: string | null
+          notes: string | null
+          updated_at: string
+          x1: number
+          x2: number
+          y1: number
+          y2: number
+        }
+        Insert: {
+          confidence: number
+          created_at?: string
+          debris_type?: string | null
+          detection_time?: string
+          id?: string
+          image_name: string
+          image_url?: string | null
+          linked_debris_id?: string | null
+          notes?: string | null
+          updated_at?: string
+          x1: number
+          x2: number
+          y1: number
+          y2: number
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          debris_type?: string | null
+          detection_time?: string
+          id?: string
+          image_name?: string
+          image_url?: string | null
+          linked_debris_id?: string | null
+          notes?: string | null
+          updated_at?: string
+          x1?: number
+          x2?: number
+          y1?: number
+          y2?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

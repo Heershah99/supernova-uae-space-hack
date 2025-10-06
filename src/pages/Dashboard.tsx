@@ -16,6 +16,7 @@ import { useAlerts } from '@/hooks/useAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { generateDemoData } from '@/utils/demoData';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -53,10 +54,15 @@ const Dashboard = () => {
             Real-time monitoring and AI-powered threat analysis
           </p>
         </div>
-        <Button onClick={handleLogout} variant="outline">
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={generateDemoData} variant="default">
+            🚀 Generate Demo Data
+          </Button>
+          <Button onClick={handleLogout} variant="outline">
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
       </header>
 
       {/* Status Overview */}

@@ -54,15 +54,10 @@ const Dashboard = () => {
             Real-time monitoring and AI-powered threat analysis
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={generateDemoData} variant="default">
-            🚀 Generate Demo Data
-          </Button>
-          <Button onClick={handleLogout} variant="outline">
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
-        </div>
+        <Button onClick={handleLogout} variant="outline">
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
       </header>
 
       {/* Status Overview */}

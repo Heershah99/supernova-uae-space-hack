@@ -9,6 +9,7 @@ import { UAEDashboard } from '@/components/uae/UAEDashboard';
 import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
 import { SatelliteManagement } from '@/components/satellite/SatelliteManagement';
 import { DebrisTrackingDashboard } from '@/components/debris/DebrisTrackingDashboard';
+import { AIDebrisDetection } from '@/components/debris/AIDebrisDetection';
 import { AlertTriangle, Satellite, Shield, Globe, LogOut } from 'lucide-react';
 import { useSatellites } from '@/hooks/useSatellites';
 import { useAlerts } from '@/hooks/useAlerts';
@@ -118,8 +119,9 @@ const Dashboard = () => {
 
       {/* Main Dashboard */}
       <Tabs defaultValue="hera" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="hera">HERA System</TabsTrigger>
+          <TabsTrigger value="ai-detection">AI Detection</TabsTrigger>
           <TabsTrigger value="visualization">3D Visualization</TabsTrigger>
           <TabsTrigger value="threats">AI Threat Analysis</TabsTrigger>
           <TabsTrigger value="alerts">Emergency Alerts</TabsTrigger>
@@ -130,6 +132,10 @@ const Dashboard = () => {
 
         <TabsContent value="hera" className="space-y-6">
           <DebrisTrackingDashboard />
+        </TabsContent>
+
+        <TabsContent value="ai-detection" className="space-y-6">
+          <AIDebrisDetection />
         </TabsContent>
 
         <TabsContent value="visualization" className="space-y-6">

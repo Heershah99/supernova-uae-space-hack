@@ -1,11 +1,13 @@
 import { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, FileText, Image as ImageIcon, Loader2, Camera, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 
 interface CSVRow {
   image_name: string;
@@ -21,6 +23,15 @@ export const DebrisDetectionUpload = () => {
   const [uploading, setUploading] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [imageFiles, setImageFiles] = useState<FileList | null>(null);
+  const [singleImage, setSingleImage] = useState<File | null>(null);
+  const [manualDetection, setManualDetection] = useState({
+    x1: '',
+    y1: '',
+    x2: '',
+    y2: '',
+    confidence: '',
+    debris_type: ''
+  });
 
   const parseCSV = (text: string): CSVRow[] => {
     const lines = text.split('\n').filter(line => line.trim());
@@ -72,12 +83,12 @@ export const DebrisDetectionUpload = () => {
             const filePath = `debris-images/${fileName}`;
 
             const { error: uploadError } = await supabase.storage
-              .from('debris-detections')
+              .from('debris-images')
               .upload(filePath, imageFile);
 
             if (!uploadError) {
               const { data: urlData } = supabase.storage
-                .from('debris-detections')
+                .from('debris-images')
                 .getPublicUrl(filePath);
               
               imageUrl = urlData.publicUrl;
@@ -150,82 +161,292 @@ export const DebrisDetectionUpload = () => {
     }
   };
 
+  const handleManualUpload = async () => {
+    if (!singleImage) {
+      toast.error("Please select an image");
+      return;
+    }
+
+    const { x1, y1, x2, y2, confidence, debris_type } = manualDetection;
+    
+    if (!x1 || !y1 || !x2 || !y2 || !confidence) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // Upload image
+      const fileExt = singleImage.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
+      const filePath = `uploads/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('debris-images')
+        .upload(filePath, singleImage);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('debris-images')
+        .getPublicUrl(filePath);
+
+      // Insert detection
+      const { error: insertError } = await supabase
+        .from('debris_detections')
+        .insert({
+          image_name: singleImage.name,
+          image_url: urlData.publicUrl,
+          x1: parseFloat(x1),
+          y1: parseFloat(y1),
+          x2: parseFloat(x2),
+          y2: parseFloat(y2),
+          confidence: parseFloat(confidence),
+          debris_type: debris_type || 'Unknown',
+          detection_time: new Date().toISOString(),
+        });
+
+      if (insertError) throw insertError;
+
+      toast.success('Detection uploaded successfully!');
+      setSingleImage(null);
+      setManualDetection({
+        x1: '',
+        y1: '',
+        x2: '',
+        y2: '',
+        confidence: '',
+        debris_type: ''
+      });
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(`Upload failed: ${error.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="bg-gradient-to-br from-card via-card to-blue-950/10 border-blue-500/30">
+      <CardHeader className="border-b border-blue-500/20">
+        <CardTitle className="flex items-center gap-2 text-blue-400">
           <Upload className="h-5 w-5" />
           Upload Detection Data
         </CardTitle>
         <CardDescription>
-          Upload CSV file with bounding box coordinates and optional images
+          Upload CSV with images or manually add single detections
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="csv-file" className="flex items-center gap-2 mb-2">
-              <FileText className="h-4 w-4" />
-              CSV File (Required)
-            </Label>
-            <Input
-              id="csv-file"
-              type="file"
-              accept=".csv"
-              onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
-              disabled={uploading}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Format: image_name, x1, y1, x2, y2, confidence, debris_type
-            </p>
-          </div>
+      <CardContent className="pt-6">
+        <Tabs defaultValue="batch" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="batch">Batch Upload</TabsTrigger>
+            <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+            <TabsTrigger value="sample">Sample Data</TabsTrigger>
+          </TabsList>
 
-          <div>
-            <Label htmlFor="image-files" className="flex items-center gap-2 mb-2">
-              <ImageIcon className="h-4 w-4" />
-              Image Files (Optional)
-            </Label>
-            <Input
-              id="image-files"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => setImageFiles(e.target.files)}
-              disabled={uploading}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Select images matching the CSV image_name column
-            </p>
-          </div>
-        </div>
+          <TabsContent value="batch" className="space-y-4 mt-4">
+            <div>
+              <Label htmlFor="csv-file" className="flex items-center gap-2 mb-2">
+                <FileText className="h-4 w-4" />
+                CSV File (Required)
+              </Label>
+              <Input
+                id="csv-file"
+                type="file"
+                accept=".csv"
+                onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+                disabled={uploading}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Format: image_name, x1, y1, x2, y2, confidence, debris_type
+              </p>
+            </div>
 
-        <div className="flex gap-2">
-          <Button
-            onClick={handleUpload}
-            disabled={uploading || !csvFile}
-            className="flex-1"
-          >
-            {uploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Data
-              </>
-            )}
-          </Button>
+            <div>
+              <Label htmlFor="image-files" className="flex items-center gap-2 mb-2">
+                <ImageIcon className="h-4 w-4" />
+                Image Files (Optional)
+              </Label>
+              <Input
+                id="image-files"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => setImageFiles(e.target.files)}
+                disabled={uploading}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Select images matching the CSV image_name column
+              </p>
+            </div>
 
-          <Button
-            variant="outline"
-            onClick={generateSampleData}
-            disabled={uploading}
-          >
-            Generate Sample Data
-          </Button>
-        </div>
+            <Button
+              onClick={handleUpload}
+              disabled={uploading || !csvFile}
+              className="w-full"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Batch
+                </>
+              )}
+            </Button>
+          </TabsContent>
+
+          <TabsContent value="manual" className="space-y-4 mt-4">
+            <div>
+              <Label htmlFor="single-image" className="flex items-center gap-2 mb-2">
+                <Camera className="h-4 w-4" />
+                Debris Image
+              </Label>
+              <Input
+                id="single-image"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setSingleImage(e.target.files?.[0] || null)}
+                disabled={uploading}
+              />
+              {singleImage && (
+                <div className="mt-2 flex items-center justify-between p-2 bg-muted rounded">
+                  <span className="text-sm truncate">{singleImage.name}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSingleImage(null)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="x1">X1 (Left)</Label>
+                <Input
+                  id="x1"
+                  type="number"
+                  placeholder="100"
+                  value={manualDetection.x1}
+                  onChange={(e) => setManualDetection({...manualDetection, x1: e.target.value})}
+                  disabled={uploading}
+                />
+              </div>
+              <div>
+                <Label htmlFor="y1">Y1 (Top)</Label>
+                <Input
+                  id="y1"
+                  type="number"
+                  placeholder="100"
+                  value={manualDetection.y1}
+                  onChange={(e) => setManualDetection({...manualDetection, y1: e.target.value})}
+                  disabled={uploading}
+                />
+              </div>
+              <div>
+                <Label htmlFor="x2">X2 (Right)</Label>
+                <Input
+                  id="x2"
+                  type="number"
+                  placeholder="300"
+                  value={manualDetection.x2}
+                  onChange={(e) => setManualDetection({...manualDetection, x2: e.target.value})}
+                  disabled={uploading}
+                />
+              </div>
+              <div>
+                <Label htmlFor="y2">Y2 (Bottom)</Label>
+                <Input
+                  id="y2"
+                  type="number"
+                  placeholder="300"
+                  value={manualDetection.y2}
+                  onChange={(e) => setManualDetection({...manualDetection, y2: e.target.value})}
+                  disabled={uploading}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="confidence">Confidence (0-1)</Label>
+              <Input
+                id="confidence"
+                type="number"
+                step="0.01"
+                min="0"
+                max="1"
+                placeholder="0.95"
+                value={manualDetection.confidence}
+                onChange={(e) => setManualDetection({...manualDetection, confidence: e.target.value})}
+                disabled={uploading}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="debris-type">Debris Type</Label>
+              <Input
+                id="debris-type"
+                placeholder="e.g., Satellite Fragment, Rocket Body"
+                value={manualDetection.debris_type}
+                onChange={(e) => setManualDetection({...manualDetection, debris_type: e.target.value})}
+                disabled={uploading}
+              />
+            </div>
+
+            <Button
+              onClick={handleManualUpload}
+              disabled={uploading || !singleImage}
+              className="w-full"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Detection
+                </>
+              )}
+            </Button>
+          </TabsContent>
+
+          <TabsContent value="sample" className="space-y-4 mt-4">
+            <div className="p-4 bg-muted rounded-lg">
+              <h4 className="font-semibold mb-2">Generate Sample Data</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                This will create 10 sample debris detections for testing and demonstration purposes.
+              </p>
+              <Button
+                variant="outline"
+                onClick={generateSampleData}
+                disabled={uploading}
+                className="w-full"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Generate Sample Data
+                  </>
+                )}
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

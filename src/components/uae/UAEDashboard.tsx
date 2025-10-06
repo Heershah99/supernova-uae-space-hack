@@ -22,9 +22,69 @@ interface UAESatellite {
   type: string;
 }
 
+// Demo data for hackathon presentation
+const DEMO_SATELLITES: UAESatellite[] = [
+  {
+    id: '1',
+    name: 'KhalifaSat',
+    status: 'operational',
+    altitude: 613,
+    inclination: 97.8,
+    battery: 95,
+    temperature: -15,
+    signalStrength: 98,
+    dataRate: 250,
+    lastContact: new Date(),
+    mission: 'Earth Observation',
+    type: 'Earth Observation'
+  },
+  {
+    id: '2',
+    name: 'MBZ-SAT',
+    status: 'operational',
+    altitude: 550,
+    inclination: 97.5,
+    battery: 92,
+    temperature: -12,
+    signalStrength: 96,
+    dataRate: 280,
+    lastContact: new Date(),
+    mission: 'Earth Observation',
+    type: 'Earth Observation'
+  },
+  {
+    id: '3',
+    name: 'DubaiSat-1',
+    status: 'operational',
+    altitude: 680,
+    inclination: 98.2,
+    battery: 88,
+    temperature: -18,
+    signalStrength: 94,
+    dataRate: 180,
+    lastContact: new Date(),
+    mission: 'Earth Observation',
+    type: 'Earth Observation'
+  },
+  {
+    id: '4',
+    name: 'Nayif-1',
+    status: 'maintenance',
+    altitude: 520,
+    inclination: 97.3,
+    battery: 72,
+    temperature: -10,
+    signalStrength: 85,
+    dataRate: 120,
+    lastContact: new Date(),
+    mission: 'Amateur Radio',
+    type: 'CubeSat'
+  }
+];
+
 export const UAEDashboard = () => {
-  const [satellites, setSatellites] = useState<UAESatellite[]>([]);
-  const [selectedSatellite, setSelectedSatellite] = useState<string>('');
+  const [satellites, setSatellites] = useState<UAESatellite[]>(DEMO_SATELLITES);
+  const [selectedSatellite, setSelectedSatellite] = useState<string>(DEMO_SATELLITES[0].name);
 
   const fetchUAESatellites = useCallback(async () => {
     try {
@@ -45,19 +105,27 @@ export const UAEDashboard = () => {
         battery: sat.battery_level,
         temperature: sat.temperature,
         signalStrength: sat.signal_strength,
-        dataRate: Math.floor(Math.random() * 300) + 100, // Simulated data rate
+        dataRate: Math.floor(Math.random() * 300) + 100,
         lastContact: sat.last_contact ? new Date(sat.last_contact) : new Date(),
         mission: sat.type,
         type: sat.type
       }));
 
-      setSatellites(uaeSatellites);
-      if (uaeSatellites.length > 0 && !selectedSatellite) {
-        setSelectedSatellite(uaeSatellites[0].name);
+      // Use demo data if no real data exists
+      if (uaeSatellites.length === 0) {
+        setSatellites(DEMO_SATELLITES);
+        setSelectedSatellite(DEMO_SATELLITES[0].name);
+      } else {
+        setSatellites(uaeSatellites);
+        if (!selectedSatellite) {
+          setSelectedSatellite(uaeSatellites[0].name);
+        }
       }
     } catch (error) {
       console.error('Error fetching UAE satellites:', error);
-      toast.error('Failed to load UAE satellites');
+      // Use demo data on error
+      setSatellites(DEMO_SATELLITES);
+      setSelectedSatellite(DEMO_SATELLITES[0].name);
     }
   }, [selectedSatellite]);
 

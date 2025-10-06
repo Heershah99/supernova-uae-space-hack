@@ -6,6 +6,10 @@ import debrisGeoGamma from "@/assets/debris-geo-gamma-003.jpg";
 
 export const generateDemoData = async () => {
   try {
+    // Clear existing demo data first
+    await supabase.from('debris_detections').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('alerts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    
     // Generate UAE satellites
     const uaeSatellites = [
       {

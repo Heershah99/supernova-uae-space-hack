@@ -191,70 +191,38 @@ export const AIDebrisDetection = () => {
           </CardContent>
         </Card>
 
-        {/* Visualization Placeholder */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Detection Visualization</CardTitle>
-            <CardDescription>
-              {selectedDetection 
-                ? `Showing detection from ${detections.find(d => d.id === selectedDetection)?.image_name}`
-                : "Select a detection to view details"
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[500px] bg-muted rounded-lg flex items-center justify-center">
-              {selectedDetection ? (
-                <div className="text-center p-8">
-                  {(() => {
-                    const detection = detections.find(d => d.id === selectedDetection);
-                    if (!detection) return null;
-                    
-                    return (
-                      <div className="space-y-4">
-                        {detection.image_url ? (
-                          <div className="relative">
-                            <img 
-                              src={detection.image_url} 
-                              alt={detection.image_name}
-                              className="max-w-full max-h-[350px] mx-auto rounded-lg"
-                            />
-                            <div className="mt-4 text-sm text-muted-foreground">
-                              Bounding box coordinates will overlay on the image
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <ImageIcon className="h-16 w-16 mx-auto text-muted-foreground" />
-                            <div className="space-y-2">
-                              <p className="font-medium">Detection Details</p>
-                              <div className="text-sm text-muted-foreground space-y-1">
-                                <div>Image: {detection.image_name}</div>
-                                <div>Confidence: {(detection.confidence * 100).toFixed(2)}%</div>
-                                <div>Bounding Box:</div>
-                                <div className="font-mono text-xs">
-                                  x1: {detection.x1}, y1: {detection.y1}<br />
-                                  x2: {detection.x2}, y2: {detection.y2}
-                                </div>
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-              ) : (
+        {/* Visualization with Canvas */}
+        {selectedDetection && selectedImage ? (
+          <DebrisImageVisualization
+            imageName={selectedImage}
+            imageUrl={detections.find(d => d.id === selectedDetection)?.image_url}
+            detections={selectedImageDetections.map(d => ({
+              x1: d.x1,
+              y1: d.y1,
+              x2: d.x2,
+              y2: d.y2,
+              confidence: d.confidence,
+              debris_type: d.debris_type,
+            }))}
+          />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Detection Visualization</CardTitle>
+              <CardDescription>Select a detection to view details</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[500px] bg-muted rounded-lg flex items-center justify-center">
                 <div className="text-center">
                   <ImageIcon className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                   <p className="text-muted-foreground">
-                    Select a detection from the list to view visualization
+                    Select a detection from the list to view visualization with bounding boxes
                   </p>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

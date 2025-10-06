@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { Brain, Upload, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { Brain, RefreshCw, AlertCircle, TrendingUp, Image as ImageIcon } from 'lucide-react';
 import { useDebrisDetections } from '@/hooks/useDebrisDetections';
+import { DebrisDetectionUpload } from './DebrisDetectionUpload';
+import { DebrisImageVisualization } from './DebrisImageVisualization';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 export const AIDebrisDetection = () => {
-  const { detections, loading } = useDebrisDetections();
+  const { detections, loading, refetch } = useDebrisDetections();
   const [selectedDetection, setSelectedDetection] = useState<string | null>(null);
+  const [groupedView, setGroupedView] = useState(true);
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.9) return 'bg-green-500';
@@ -27,6 +30,23 @@ export const AIDebrisDetection = () => {
   const mediumConfidenceDetections = detections.filter(d => d.confidence >= 0.5 && d.confidence < 0.8);
   const lowConfidenceDetections = detections.filter(d => d.confidence < 0.5);
 
+  // Group detections by image
+  const detectionsByImage = detections.reduce((acc, detection) => {
+    if (!acc[detection.image_name]) {
+      acc[detection.image_name] = [];
+    }
+    acc[detection.image_name].push(detection);
+    return acc;
+  }, {} as Record<string, typeof detections>);
+
+  const selectedImage = selectedDetection 
+    ? detections.find(d => d.id === selectedDetection)?.image_name 
+    : null;
+  
+  const selectedImageDetections = selectedImage 
+    ? detectionsByImage[selectedImage] || []
+    : [];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -40,11 +60,24 @@ export const AIDebrisDetection = () => {
             Real-time AI-powered space debris identification and tracking
           </p>
         </div>
-        <Button variant="outline" className="gap-2">
-          <Upload className="h-4 w-4" />
-          Upload Detection Data
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={refetch}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button 
+            variant={groupedView ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setGroupedView(!groupedView)}
+          >
+            <TrendingUp className="h-4 w-4 mr-2" />
+            {groupedView ? 'Grouped' : 'List'} View
+          </Button>
+        </div>
       </div>
+
+      {/* Upload Section */}
+      <DebrisDetectionUpload />
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

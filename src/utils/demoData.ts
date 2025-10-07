@@ -279,129 +279,213 @@ export const generateDemoData = async () => {
     const allSatellites = [...uaeSatellites, ...internationalSatellites];
     await supabase.from('satellites').upsert(allSatellites, { onConflict: 'name' });
 
-    // Generate comprehensive emergency alerts
+    // Generate comprehensive emergency alerts with realistic distance data
     const alerts = [
       {
-        title: "High Collision Risk - KhalifaSat",
-        description: "Debris object approaching within 2km. Immediate attention required.",
+        title: "⚠️ IMMINENT COLLISION - KhalifaSat",
+        description: "CRITICAL: Defunct satellite fragment detected 847 meters from KhalifaSat. Collision probability: 78%. Relative velocity: 14.2 km/s. Time to closest approach: 47 minutes. IMMEDIATE EVASIVE ACTION REQUIRED.",
         type: "collision_warning",
         severity: "critical" as const,
         affected_assets: ["KhalifaSat"],
         status: "active" as const,
-        auto_response: "Automated collision avoidance maneuver initiated. Station operators notified."
+        auto_response: "🚨 EMERGENCY PROTOCOL ACTIVATED: Automated collision avoidance maneuver initiated. Thrusters firing in T-15 minutes. Ground control alerted. All non-essential systems shutting down to preserve fuel for evasive maneuver."
       },
       {
-        title: "Solar Storm Warning",
-        description: "G3-class geomagnetic storm expected in 12 hours. Satellite systems may experience disruptions.",
+        title: "🔴 CATASTROPHIC COLLISION RISK - MBZ-SAT",
+        description: "EXTREME DANGER: Large debris object (estimated 2.3m diameter) on direct collision course. Current distance: 1,234 meters. Closing velocity: 15.8 km/s. Impact probability: 92%. Time to impact: 23 minutes. THIS IS NOT A DRILL.",
+        type: "collision_warning",
+        severity: "critical" as const,
+        affected_assets: ["MBZ-SAT"],
+        status: "active" as const,
+        auto_response: "🚨 MAXIMUM ALERT: Emergency maneuver sequence initiated. All backup systems online. Mission control executing emergency collision avoidance protocol CAP-ALPHA-1. Fuel reserves: 87%. Preparing for high-delta-v burn."
+      },
+      {
+        title: "⚠️ HIGH-VELOCITY DEBRIS APPROACH - DubaiSat-1",
+        description: "URGENT: Rocket body fragment detected 3.8 km away and closing fast. Relative velocity: 12.4 km/s. Miss distance predicted: 450 meters (BELOW SAFETY THRESHOLD). Collision probability: 45%. Time to closest approach: 2 hours 14 minutes.",
+        type: "collision_warning",
+        severity: "high" as const,
+        affected_assets: ["DubaiSat-1"],
+        status: "active" as const,
+        auto_response: "Alert Level HIGH: Tracking debris continuously. Orbital path adjustment calculated. Maneuver window: 78 minutes. Ground team on standby. Satellite health: nominal. Ready for evasive action."
+      },
+      {
+        title: "🌟 Severe Solar Storm Incoming",
+        description: "G4-class geomagnetic storm detected. Solar flare radiation traveling at 1,800 km/s. Expected arrival: 8 hours 32 minutes. All LEO satellites will experience radiation exposure 15x normal levels. Communication disruptions likely for 12-18 hours.",
         type: "space_weather",
         severity: "high" as const,
-        affected_assets: ["All LEO satellites"],
+        affected_assets: ["All LEO satellites", "KhalifaSat", "MBZ-SAT", "DubaiSat-1", "Nayif-1"],
         status: "active" as const,
-        auto_response: "All satellites switched to safe mode. Non-essential systems powered down."
+        auto_response: "Storm Protocol Engaged: All satellites entering radiation-safe mode. Solar panels angling for minimum exposure. Sensitive electronics entering shielded state. Ground communications switching to backup frequencies."
       },
       {
-        title: "Signal Degradation - DubaiSat-1",
-        description: "Signal strength dropped to 75%. Ground station communication affected.",
-        type: "system_anomaly",
+        title: "⚠️ Debris Cloud Intercept - LEO Corridor",
+        description: "WARNING: Multiple debris fragments detected in UAE satellite corridor. 47 objects tracked. Closest object: 5.2 km from KhalifaSat. Debris field density: HIGH. Fragment velocities: 7-16 km/s. All assets in affected zone at elevated risk for next 6 hours.",
+        type: "collision_warning",
+        severity: "high" as const,
+        affected_assets: ["KhalifaSat", "MBZ-SAT", "DubaiSat-1", "ISS", "Sentinel-1A", "Starlink-1234"],
+        status: "active" as const,
+        auto_response: "Multi-Asset Alert: Continuous tracking of all 47 fragments initiated. Collision probability matrix updating every 30 seconds. All affected satellites on heightened alert. Automated avoidance systems armed and ready."
+      },
+      {
+        title: "🔶 Potential Debris Encounter - Nayif-1",
+        description: "ADVISORY: Small debris object (est. 15cm) detected 8.7 km from Nayif-1. Relative velocity: 9.2 km/s. Miss distance: 1.2 km. Collision probability: 8%. Monitoring closely. Object too small for accurate trajectory prediction.",
+        type: "collision_warning",
         severity: "medium" as const,
-        affected_assets: ["DubaiSat-1"],
-        status: "acknowledged" as const,
-        auto_response: "Backup ground station activated. Diagnostics running."
+        affected_assets: ["Nayif-1"],
+        status: "active" as const,
+        auto_response: "Monitoring Mode: Debris tracking radar locked on target. Trajectory calculations updating every 2 minutes. Satellite orientation optimized to minimize cross-section. Ready to execute avoidance if probability exceeds 15%."
       },
       {
-        title: "Battery Low - Nayif-1",
-        description: "Battery level at 72%. Entering power conservation mode.",
+        title: "⚠️ ISS Conjunction Warning",
+        description: "International Space Station passing within 15 km of UAE satellite corridor. Distance from KhalifaSat: 12.4 km at closest approach. Time to conjunction: 3 hours 45 minutes. Coordination with NASA ongoing. No collision risk but monitoring required.",
+        type: "collision_warning",
+        severity: "medium" as const,
+        affected_assets: ["KhalifaSat", "ISS"],
+        status: "acknowledged" as const,
+        auto_response: "Coordination Protocol: Direct link established with ISS mission control. Orbital elements exchanged. Safe passage confirmed. All systems monitoring conjunction event."
+      },
+      {
+        title: "Battery Critical - Nayif-1",
+        description: "Power systems warning: Battery level at 68% and declining. Solar panel efficiency reduced by 12%. Estimated time to critical level (50%): 4 hours 20 minutes. Non-essential systems being shut down to conserve power.",
         type: "system_anomaly",
         severity: "medium" as const,
         affected_assets: ["Nayif-1"],
         status: "active" as const,
-        auto_response: "Non-critical systems powered down. Solar panel reorientation in progress."
+        auto_response: "Power Conservation Active: All non-critical systems offline. Solar panel diagnostic initiated. Battery temperature: nominal. Ground team analyzing power consumption patterns. Backup power protocols ready."
       },
       {
-        title: "Debris Cloud Detected - LEO Corridor",
-        description: "Multiple debris fragments detected in LEO corridor. All satellites at risk.",
-        type: "collision_warning",
-        severity: "high" as const,
-        affected_assets: ["KhalifaSat", "MBZ-SAT", "DubaiSat-1", "ISS", "Sentinel-1A"],
-        status: "active" as const,
-        auto_response: "Tracking initiated. Collision probability calculations in progress."
+        title: "Signal Anomaly - DubaiSat-1", 
+        description: "Telemetry signal strength dropped to 67% (-8dB from nominal). Possible antenna misalignment or atmospheric interference. Data link quality: degraded but stable. No immediate threat to mission operations.",
+        type: "system_anomaly",
+        severity: "low" as const,
+        affected_assets: ["DubaiSat-1"],
+        status: "acknowledged" as const,
+        auto_response: "Communications Check: Backup ground station now primary. Signal quality improving. Antenna diagnostics scheduled for next contact window. Data buffering enabled."
       },
       {
-        title: "Ground Station Maintenance",
-        description: "Dubai ground station offline for scheduled maintenance.",
+        title: "Routine Maintenance Complete",
+        description: "Al Ain ground station maintenance window completed successfully. All systems tested and operational. Station returned to active status. Communication links re-established with all UAE assets.",
         type: "system_anomaly",
         severity: "low" as const,
         affected_assets: ["UAE Ground Network"],
         status: "resolved" as const,
-        auto_response: "Backup ground stations activated. All communications maintained."
+        auto_response: "Ground Network Status: All stations operational. Redundancy restored to 100%. Communication quality: excellent across all links."
       }
     ];
 
     await supabase.from('alerts').insert(alerts);
 
-    // Generate collision predictions
+    // Generate realistic collision predictions with detailed distance data
     const collisionPredictions = [
       {
         satellite1_id: null, // Will be filled in real scenario
         satellite2_id: null,
-        probability: 0.15,
-        predicted_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
-        miss_distance: 1.8,
+        probability: 0.78,
+        predicted_time: new Date(Date.now() + 47 * 60 * 1000).toISOString(), // 47 minutes from now
+        miss_distance: 0.847, // 847 meters - CRITICAL
+        threat_level: "critical" as const
+      },
+      {
+        satellite1_id: null,
+        satellite2_id: null,
+        probability: 0.92,
+        predicted_time: new Date(Date.now() + 23 * 60 * 1000).toISOString(), // 23 minutes from now
+        miss_distance: 1.234, // 1.2 km - CATASTROPHIC
+        threat_level: "critical" as const
+      },
+      {
+        satellite1_id: null,
+        satellite2_id: null,
+        probability: 0.45,
+        predicted_time: new Date(Date.now() + 134 * 60 * 1000).toISOString(), // 2 hours 14 minutes
+        miss_distance: 0.450, // 450 meters - HIGH RISK
         threat_level: "high" as const
       },
       {
         satellite1_id: null,
         satellite2_id: null,
         probability: 0.08,
-        predicted_time: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours from now
-        miss_distance: 3.2,
+        predicted_time: new Date(Date.now() + 225 * 60 * 1000).toISOString(), // 3 hours 45 minutes
+        miss_distance: 1.2, // 1.2 km
         threat_level: "medium" as const
       },
       {
         satellite1_id: null,
         satellite2_id: null,
-        probability: 0.25,
-        predicted_time: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(), // 12 hours from now
-        miss_distance: 0.9,
-        threat_level: "critical" as const
+        probability: 0.32,
+        predicted_time: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(), // 6 hours
+        miss_distance: 5.2, // 5.2 km - debris cloud
+        threat_level: "high" as const
       }
     ];
 
     await supabase.from('collision_predictions').insert(collisionPredictions);
 
-    // Generate threats
+    // Generate realistic threats with distance metrics
     const threats = [
       {
         type: "collision_risk",
         severity: "critical" as const,
-        description: "High-velocity debris on collision course with KhalifaSat",
-        probability: 0.25,
-        recommendation: "Execute evasive maneuver within 6 hours. Coordinate with ground control.",
+        description: "IMMINENT COLLISION: Defunct satellite fragment 847m from KhalifaSat. Relative velocity: 14.2 km/s. Impact probability: 78%. Time to collision: 47 minutes.",
+        probability: 0.78,
+        recommendation: "🚨 EXECUTE IMMEDIATE EVASIVE MANEUVER. Activate emergency thrusters. Delta-V requirement: 2.4 m/s. Coordinate with mission control NOW.",
+        status: "active" as const
+      },
+      {
+        type: "collision_risk",
+        severity: "critical" as const,
+        description: "CATASTROPHIC THREAT: Large debris object (2.3m) on direct collision course with MBZ-SAT. Distance: 1,234m. Closing velocity: 15.8 km/s. Collision probability: 92%. Impact in 23 minutes.",
+        probability: 0.92,
+        recommendation: "🚨 EMERGENCY PROTOCOL: Execute maximum delta-V burn immediately. All backup systems to online. Prepare for high-G maneuver. Mission critical action required.",
+        status: "active" as const
+      },
+      {
+        type: "collision_risk",
+        severity: "high" as const,
+        description: "HIGH-VELOCITY APPROACH: Rocket body fragment 3.8km from DubaiSat-1. Velocity: 12.4 km/s. Predicted miss distance: 450m (below safety threshold). Probability: 45%.",
+        probability: 0.45,
+        recommendation: "⚠️ PREPARE EVASIVE ACTION: Calculate optimal maneuver window. Standby for burn execution within 78 minutes. Monitor continuously.",
         status: "active" as const
       },
       {
         type: "space_weather",
         severity: "high" as const,
-        description: "Solar flare activity increasing. Radiation levels rising.",
-        probability: 0.85,
-        recommendation: "Switch to safe mode. Shield sensitive electronics.",
+        description: "G4-class geomagnetic storm detected. Solar radiation traveling at 1,800 km/s. Impact in 8.5 hours. Radiation exposure: 15x nominal levels for 12-18 hours.",
+        probability: 0.95,
+        recommendation: "⚠️ STORM PROTOCOL: Enter radiation-safe mode. Orient solar panels for minimum exposure. Shield sensitive electronics. Switch to backup communication frequencies.",
+        status: "active" as const
+      },
+      {
+        type: "collision_risk",
+        severity: "high" as const,
+        description: "DEBRIS CLOUD ALERT: 47 fragments detected in UAE satellite corridor. Closest object 5.2km from KhalifaSat. Fragment velocities: 7-16 km/s. Elevated risk for next 6 hours.",
+        probability: 0.32,
+        recommendation: "⚠️ HEIGHTENED ALERT: Continuous tracking of all fragments. Automated avoidance systems armed. Monitor collision matrix every 30 seconds.",
+        status: "active" as const
+      },
+      {
+        type: "collision_risk",
+        severity: "medium" as const,
+        description: "Small debris object (15cm) detected 8.7km from Nayif-1. Velocity: 9.2 km/s. Miss distance: 1.2km. Probability: 8%. Size limits trajectory accuracy.",
+        probability: 0.08,
+        recommendation: "Monitor closely. Maintain tracking radar lock. Execute avoidance if probability exceeds 15%. Optimize satellite cross-section.",
         status: "active" as const
       },
       {
         type: "system_failure",
         severity: "medium" as const,
-        description: "Attitude control system anomaly detected on Nayif-1",
-        probability: 0.45,
-        recommendation: "Run diagnostics. Prepare backup systems.",
-        status: "acknowledged" as const
+        description: "Power systems critical: Nayif-1 battery at 68% and declining. Solar efficiency down 12%. Time to critical (50%): 4h 20m.",
+        probability: 0.75,
+        recommendation: "Shutdown all non-essential systems. Run solar panel diagnostics. Monitor battery temperature. Prepare backup power protocols.",
+        status: "active" as const
       },
       {
         type: "orbital_decay",
         severity: "low" as const,
-        description: "Gradual altitude loss detected on MetOp-C",
+        description: "Gradual altitude loss: MetOp-C losing 120m per day. Current altitude: 817km. Decay rate within expected parameters.",
         probability: 0.90,
-        recommendation: "Schedule orbital boost maneuver within 30 days.",
-        status: "active" as const
+        recommendation: "Schedule orbital boost maneuver within 30 days. Calculate fuel requirements. No immediate action needed.",
+        status: "acknowledged" as const
       }
     ];
 

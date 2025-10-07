@@ -5,9 +5,12 @@ import * as THREE from 'three';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Pause, RotateCcw } from 'lucide-react';
+import { Play, Pause, RotateCcw, Target } from 'lucide-react';
 import { useDebrisTracking } from '@/hooks/useDebrisTracking';
 import { useSatellites } from '@/hooks/useSatellites';
+import { ISSProtectionAnalysis } from './ISSProtectionAnalysis';
+import { LiveDataIndicator } from './LiveDataIndicator';
+import { Html } from '@react-three/drei';
 
 // Nebula background effect
 function SpaceEnvironment() {
@@ -261,24 +264,35 @@ function ISSTracker() {
   );
 }
 
-// Debris particle with danger visualization
+// Enhanced Debris particle with distance labels
 function DebrisParticle({ 
   position, 
   size = 0.02,
   type,
-  threatLevel 
+  threatLevel,
+  name,
+  distance
 }: { 
   position: [number, number, number]; 
   size?: number;
   type: string;
   threatLevel?: string;
+  name?: string;
+  distance?: number;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const [showLabel, setShowLabel] = useState(false);
   
   useFrame(({ clock }) => {
     if (meshRef.current) {
       meshRef.current.rotation.x += 0.05;
       meshRef.current.rotation.y += 0.03;
+      
+      // Pulse for critical threats
+      if (threatLevel === 'critical') {
+        const scale = 1 + Math.sin(clock.getElapsedTime() * 3) * 0.3;
+        meshRef.current.scale.setScalar(scale);
+      }
     }
   });
 
@@ -293,7 +307,11 @@ function DebrisParticle({
 
   return (
     <group position={position}>
-      <mesh ref={meshRef}>
+      <mesh 
+        ref={meshRef}
+        onPointerOver={() => setShowLabel(true)}
+        onPointerOut={() => setShowLabel(false)}
+      >
         <dodecahedronGeometry args={[size, 0]} />
         <meshStandardMaterial
           color={getColor()}
@@ -304,22 +322,35 @@ function DebrisParticle({
         />
       </mesh>
       {threatLevel && (
-        <mesh>
-          <sphereGeometry args={[size * 3, 16, 16]} />
-          <meshBasicMaterial
-            color={getColor()}
-            transparent
-            opacity={0.15}
-            blending={THREE.AdditiveBlending}
-          />
-        </mesh>
+        <>
+          <mesh>
+            <sphereGeometry args={[size * 3, 16, 16]} />
+            <meshBasicMaterial
+              color={getColor()}
+              transparent
+              opacity={0.15}
+              blending={THREE.AdditiveBlending}
+            />
+          </mesh>
+          <pointLight color={getColor()} intensity={1} distance={0.5} />
+        </>
+      )}
+      
+      {/* Distance label for threats */}
+      {(threatLevel === 'critical' || threatLevel === 'high' || showLabel) && name && distance && (
+        <Html position={[position[0], position[1] + 0.1, position[2]]} center>
+          <div className="bg-black/90 text-white px-2 py-1 rounded-md text-xs whitespace-nowrap border border-red-500/70 backdrop-blur-sm shadow-lg">
+            <div className="font-bold text-red-400 text-[10px]">{name.substring(0, 20)}</div>
+            <div className="text-[9px] text-red-300">{distance.toFixed(0)}m away</div>
+          </div>
+        </Html>
       )}
     </group>
   );
 }
 
-// Debris field visualization
-function DebrisField({ debrisData }: { debrisData: any[] }) {
+// Debris field visualization with risk assessment
+function DebrisField({ debrisData, risks }: { debrisData: any[]; risks: any[] }) {
   return (
     <>
       {debrisData.slice(0, 100).map((debris) => {
@@ -332,12 +363,18 @@ function DebrisField({ debrisData }: { debrisData: any[] }) {
         const posY = debris.position_y * scale;
         const posZ = debris.position_z * scale;
         
+        // Find if this debris has a risk assessment
+        const risk = risks.find(r => r.debris_name === debris.name);
+        
         return (
           <DebrisParticle
             key={debris.id}
             position={[posX, posY, posZ]}
             size={Math.max(0.015, Math.min(0.04, debris.size * 0.01))}
             type={debris.type}
+            threatLevel={risk?.threat_level}
+            name={risk ? debris.name : undefined}
+            distance={risk ? risk.miss_distance * 1000 : undefined}
           />
         );
       })}
@@ -463,8 +500,8 @@ export const SatelliteVisualization = () => {
 
   return (
     <div className="space-y-6">
-      {/* Controls */}
-      <div className="flex items-center justify-between">
+      {/* Controls and Live Data Indicators */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
           <Button
             variant="default"
@@ -486,20 +523,27 @@ export const SatelliteVisualization = () => {
           </Button>
         </div>
         
-        <div className="flex items-center gap-3">
-          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 shadow-lg shadow-emerald-500/10">
-            🛰️ ISS - Active
-          </Badge>
-          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 shadow-lg shadow-amber-500/10">
-            🇦🇪 UAE Satellites - 12
-          </Badge>
-          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 shadow-lg shadow-blue-500/10">
-            📡 Tracked - {totalTracked}
-          </Badge>
-          <Badge className="bg-red-500/20 text-red-400 border-red-500/30 shadow-lg shadow-red-500/10">
-            ⚠️ Debris - {debris.length}
-          </Badge>
-        </div>
+        <LiveDataIndicator />
+      </div>
+
+      {/* Stats Badges */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 shadow-lg shadow-emerald-500/10">
+          🛰️ ISS - Active
+        </Badge>
+        <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 shadow-lg shadow-amber-500/10">
+          🇦🇪 UAE Satellites - 12
+        </Badge>
+        <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 shadow-lg shadow-blue-500/10">
+          📡 Tracked - {totalTracked}
+        </Badge>
+        <Badge className="bg-red-500/20 text-red-400 border-red-500/30 shadow-lg shadow-red-500/10 animate-pulse">
+          ⚠️ Active Threats - {highRiskCount}
+        </Badge>
+        <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 shadow-lg shadow-purple-500/10">
+          <Target className="h-3 w-3 mr-1" />
+          Debris - {debris.length}
+        </Badge>
       </div>
 
       {/* 3D Visualization */}
@@ -527,7 +571,7 @@ export const SatelliteVisualization = () => {
           
           {!debrisLoading && debris.length > 0 && (
             <>
-              <DebrisField debrisData={debris} />
+              <DebrisField debrisData={debris} risks={collisionRisks} />
               <CollisionRiskZones risks={collisionRisks} />
             </>
           )}
@@ -546,51 +590,34 @@ export const SatelliteVisualization = () => {
         </Canvas>
       </div>
 
-      {/* Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-br from-card via-card to-emerald-950/20 border-emerald-500/30 shadow-xl shadow-emerald-500/5">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              🛰️ ISS Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Altitude:</span>
-                <span className="text-sm font-bold text-emerald-400">408 km</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Speed:</span>
-                <span className="text-sm font-bold text-emerald-400">27,600 km/h</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Next Pass:</span>
-                <span className="text-sm font-bold text-emerald-400">21:34 UTC</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* ISS Protection Analysis */}
+      <ISSProtectionAnalysis />
 
+      {/* Info Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-gradient-to-br from-card via-card to-amber-950/20 border-amber-500/30 shadow-xl shadow-amber-500/5">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              🇦🇪 UAE Assets
+              🇦🇪 UAE Assets Status
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">KhalifaSat:</span>
-                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Active</Badge>
+                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Operational</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">DubaiSat-2:</span>
-                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Active</Badge>
+                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Operational</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Nayif-1:</span>
-                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Active</Badge>
+                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Operational</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Total Protected:</span>
+                <span className="text-sm font-bold text-amber-400">12 Assets</span>
               </div>
             </div>
           </CardContent>
@@ -599,14 +626,18 @@ export const SatelliteVisualization = () => {
         <Card className="bg-gradient-to-br from-card via-card to-red-950/20 border-red-500/30 shadow-xl shadow-red-500/5">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              ⚠️ Collision Risks
+              ⚠️ Active Collision Risks
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Critical:</span>
+                <span className="text-sm font-bold text-red-400">{collisionRisks.filter(r => r.threat_level === 'critical').length}</span>
+              </div>
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">High Risk:</span>
-                <span className="text-sm font-bold text-red-400">{highRiskCount}</span>
+                <span className="text-sm font-bold text-orange-400">{highRiskCount}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Medium Risk:</span>

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Satellite, Shield, Radar } from "lucide-react";
+import sdaLogo from '@/assets/sda-logo.png';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
       <div className="container mx-auto px-4 py-16">
         <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-8">
+          <img src={sdaLogo} alt="Space Domain Awareness" className="h-32 w-32 mb-4" />
           <div className="space-y-4">
             <h1 className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
               Space Domain Awareness

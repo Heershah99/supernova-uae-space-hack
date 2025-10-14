@@ -11,6 +11,7 @@ import { SatelliteManagement } from '@/components/satellite/SatelliteManagement'
 import { DebrisTrackingDashboard } from '@/components/debris/DebrisTrackingDashboard';
 import { AIDebrisDetection } from '@/components/debris/AIDebrisDetection';
 import { AlertTriangle, Satellite, Shield, Globe, LogOut } from 'lucide-react';
+import sdaLogo from '@/assets/sda-logo.png';
 import { useSatellites } from '@/hooks/useSatellites';
 import { useAlerts } from '@/hooks/useAlerts';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,13 +57,16 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background p-6">
       <header className="mb-8 flex justify-between items-start">
-        <div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">
-            Space Domain Awareness
-          </h1>
-          <p className="text-muted-foreground">
-            Real-time monitoring and AI-powered threat analysis
-          </p>
+        <div className="flex items-center gap-4">
+          <img src={sdaLogo} alt="SDA Logo" className="h-16 w-16" />
+          <div>
+            <h1 className="text-4xl font-bold text-foreground mb-2">
+              Space Domain Awareness
+            </h1>
+            <p className="text-muted-foreground">
+              Real-time monitoring and AI-powered threat analysis
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button onClick={handleGenerateDemoData} variant="default">

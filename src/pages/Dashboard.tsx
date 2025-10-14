@@ -30,6 +30,16 @@ const Dashboard = () => {
     navigate("/auth");
   };
 
+  const handleGenerateDemoData = async () => {
+    toast.loading("Generating demo data...");
+    try {
+      await generateDemoData();
+      toast.success("Demo data generated successfully! Refresh to see updates.");
+    } catch (error: any) {
+      toast.error("Failed to generate demo data: " + error.message);
+    }
+  };
+
   const uaeSatellites = satellites.filter(s => s.country === 'UAE');
   const activeAlerts = alerts.filter(a => a.status === 'active');
 
@@ -54,10 +64,15 @@ const Dashboard = () => {
             Real-time monitoring and AI-powered threat analysis
           </p>
         </div>
-        <Button onClick={handleLogout} variant="outline">
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateDemoData} variant="default">
+            Generate Demo Data
+          </Button>
+          <Button onClick={handleLogout} variant="outline">
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
       </header>
 
       {/* Status Overview */}
